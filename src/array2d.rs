@@ -1,5 +1,6 @@
 use std::ops::{Index, IndexMut};
 
+/// A simple generic 2D array type
 #[derive(PartialEq, Eq, Clone)]
 pub struct Array2D<T> {
     data: Vec<T>,
@@ -11,9 +12,11 @@ impl<T> Array2D<T>
 where
     T: Clone,
 {
-    pub fn new(width: usize, height: usize, default: T) -> Array2D<T> {
+    /// Constructs a new `Array2D<T>` with the given dimensions, initialising all values to `value`.
+    /// Requires that `T` is `Clone`.
+    pub fn new(width: usize, height: usize, value: T) -> Array2D<T> {
         let mut data = Vec::with_capacity(width * height);
-        data.resize(width * height, default);
+        data.resize(width * height, value);
         Array2D {
             data,
             width,
@@ -26,6 +29,8 @@ impl<T> Array2D<T>
 where
     T: Default,
 {
+    /// Constructs a new `Array2D<T>` with the given dimensions, initialising all values to `T::default()`.
+    /// Requires that `T` is `Default`.
     pub fn default_new(width: usize, height: usize) -> Array2D<T> {
         let mut data = Vec::with_capacity(width * height);
         data.resize_with(width * height, || T::default());
@@ -38,9 +43,11 @@ where
 }
 
 impl<T> Array2D<T> {
-    pub fn closure_new<F: FnMut() -> T>(width: usize, height: usize, func: F) -> Array2D<T> {
+    /// Constructs a new `Array2D<T>` with the given dimensions, computing all initial values from the closure `f`.
+    pub fn closure_new<F>(width: usize, height: usize, f: F) -> Array2D<T> 
+    where F : FnMut() -> T {
         let mut data = Vec::with_capacity(width * height);
-        data.resize_with(width * height, func);
+        data.resize_with(width * height, f);
         Array2D {
             data,
             width,
@@ -48,6 +55,8 @@ impl<T> Array2D<T> {
         }
     }
 
+    /// Sets the value at position (`x`, `y`) of the array to `value`.
+    /// Returns `true` on success, or `false` if the position (`x`, `y`) is outside the dimensions of the array.
     pub fn set(&mut self, x: usize, y: usize, value: T) -> bool {
         if x >= self.width || y >= self.height {
             return false;
@@ -56,6 +65,9 @@ impl<T> Array2D<T> {
         true
     }
 
+    /// Gets a reference to the value at position (`x`, `y`) of the array.
+    /// If the position (`x`, `y`) is within the dimensions of the array, returns `Some(&T)`.
+    /// Otherwise, returns `None`.
     pub fn get(&self, x: usize, y: usize) -> Option<&T> {
         if x >= self.width || y >= self.height {
             return None;
@@ -63,6 +75,9 @@ impl<T> Array2D<T> {
         Some(&self.data[x + y * self.width])
     }
 
+    /// Gets a mutable reference to the value at position (`x`, `y`) of the array.
+    /// If the position (`x`, `y`) is within the dimensions of the array, returns `Some(&mut T)`.
+    /// Otherwise, returns `None`.
     pub fn get_mut(&mut self, x: usize, y: usize) -> Option<&mut T> {
         if x >= self.width || y >= self.height {
             return None;
@@ -70,10 +85,12 @@ impl<T> Array2D<T> {
         Some(&mut self.data[x + y * self.width])
     }
 
+    /// Returns the width of the array.
     pub fn width(&self) -> usize {
         self.width
     }
 
+    /// Returns the height of the array.
     pub fn height(&self) -> usize {
         self.height
     }

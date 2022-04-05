@@ -233,7 +233,7 @@ where
 
         writeln!(f)?;
         writeln!(f, "width: {}", self.width)?;
-        writeln!(f, "height: {}", self.height)?;
+        write!(f, "height: {}", self.height)?;
 
         Ok(())
     }

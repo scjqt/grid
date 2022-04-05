@@ -1,4 +1,7 @@
-use std::ops::{Index, IndexMut};
+use std::{
+    fmt::{self, Debug, Display},
+    ops::{Index, IndexMut},
+};
 
 /// A simple generic 2D array struct.
 ///
@@ -17,7 +20,7 @@ use std::ops::{Index, IndexMut};
 /// assert_eq!(arr[[2, 3]], 2);
 /// assert_eq!(arr[(1, 0)], 1);
 /// ```
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialEq, Eq, Clone)]
 pub struct Array2D<T> {
     data: Vec<T>,
     width: usize,
@@ -204,5 +207,34 @@ impl<T> Index<(usize, usize)> for Array2D<T> {
 impl<T> IndexMut<(usize, usize)> for Array2D<T> {
     fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {
         self.get_mut(index.0, index.1).expect("index out of bounds")
+    }
+}
+
+impl<T> Debug for Array2D<T>
+where
+    T: Display,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        let mut longest = 0;
+        for y in 0..self.height {
+            for x in 0..self.width {
+                longest = longest.max(self[[x, y]].to_string().len());
+            }
+        }
+
+        for y in 0..self.height {
+            write!(f, "[{}", self[[0, y]])?;
+            for x in 1..self.width {
+                let str = self[[x, y]].to_string();
+                write!(f, ", {}{}", " ".repeat(longest - str.len()), str)?;
+            }
+            writeln!(f, "]")?;
+        }
+
+        writeln!(f)?;
+        writeln!(f, "width: {}", self.width)?;
+        writeln!(f, "height: {}", self.height)?;
+
+        Ok(())
     }
 }

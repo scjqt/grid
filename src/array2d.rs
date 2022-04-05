@@ -2,7 +2,7 @@ use std::ops::{Index, IndexMut};
 
 /// A simple generic 2D array struct.
 ///
-/// Indexable mutably and immutably by both `[usize; 2]` and `(usize, usize)`.
+/// Indexable mutably and immutably by both `[isize; 2]` and `(isize, isize)`.
 ///
 /// # Examples
 ///
@@ -38,7 +38,7 @@ where
     ///
     /// let arr: Array2D<u8> = Array2D::new(3, 5, 1);
     ///
-    /// assert_eq!(arr[[2, 1]], 1);
+    /// assert_eq!(arr[[2, 4]], 1);
     /// ```
     pub fn new(width: usize, height: usize, value: T) -> Array2D<T> {
         let mut data = Vec::with_capacity(width * height);
@@ -65,7 +65,7 @@ where
     ///
     /// let arr: Array2D<u8> = Array2D::default_new(4, 2);
     ///
-    /// assert_eq!(arr[[0, 1]], 0);
+    /// assert_eq!(arr[[3, 1]], 0);
     /// ```
     pub fn default_new(width: usize, height: usize) -> Array2D<T> {
         let mut data = Vec::with_capacity(width * height);
@@ -88,7 +88,7 @@ impl<T> Array2D<T> {
     ///
     /// let arr: Array2D<u8> = Array2D::closure_new(3, 3, || 2);
     ///
-    /// assert_eq!(arr[[0, 1]], 2);
+    /// assert_eq!(arr[[0, 2]], 2);
     /// ```
     pub fn closure_new<F>(width: usize, height: usize, f: F) -> Array2D<T>
     where
@@ -101,29 +101,6 @@ impl<T> Array2D<T> {
             width,
             height,
         }
-    }
-
-    /// Sets the value at position (`x`, `y`) of the array to `value`.
-    /// Returns `true` on success, or `false` if the position (`x`, `y`) is outside the dimensions of the array.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use array2d::Array2D;
-    ///
-    /// let mut arr: Array2D<u8> = Array2D::new(3, 4, 0);
-    ///
-    /// assert_eq!(arr.set(0, 1, 1), true);
-    /// assert_eq!(arr.set(3, 2, 2), false);
-    ///
-    /// assert_eq!(arr[[0, 1]], 1);
-    /// ```
-    pub fn set(&mut self, x: usize, y: usize, value: T) -> bool {
-        if x >= self.width || y >= self.height {
-            return false;
-        }
-        self.data[x + y * self.width] = value;
-        true
     }
 
     /// Gets a reference to the value at position (`x`, `y`) of the array.
@@ -142,11 +119,11 @@ impl<T> Array2D<T> {
     /// assert_eq!(arr.get(0, 0), Some(&1));
     /// assert_eq!(arr.get(3, 2), None);
     /// ```
-    pub fn get(&self, x: usize, y: usize) -> Option<&T> {
-        if x >= self.width || y >= self.height {
+    pub fn get(&self, x: isize, y: isize) -> Option<&T> {
+        if x < 0 || x as usize >= self.width || y < 0 || y as usize >= self.height {
             return None;
         }
-        Some(&self.data[x + y * self.width])
+        Some(&self.data[x as usize + y as usize * self.width])
     }
 
     /// Gets a mutable reference to the value at position (`x`, `y`) of the array.
@@ -158,18 +135,41 @@ impl<T> Array2D<T> {
     /// ```
     /// use array2d::Array2D;
     ///
-    /// let mut arr: Array2D<u8> = Array2D::new(3, 1, 0);
+    /// let mut arr: Array2D<u8> = Array2D::new(6, 7, 0);
     ///
-    /// arr[[2, 0]] = 1;
+    /// arr[[5, 3]] = 1;
     ///
-    /// assert_eq!(arr.get_mut(2, 0), Some(&mut 1));
-    /// assert_eq!(arr.get_mut(0, 1), None);
+    /// assert_eq!(arr.get_mut(5, 3), Some(&mut 1));
+    /// assert_eq!(arr.get_mut(4, -1), None);
     /// ```
-    pub fn get_mut(&mut self, x: usize, y: usize) -> Option<&mut T> {
-        if x >= self.width || y >= self.height {
+    pub fn get_mut(&mut self, x: isize, y: isize) -> Option<&mut T> {
+        if x < 0 || x as usize >= self.width || y < 0 || y as usize >= self.height {
             return None;
         }
-        Some(&mut self.data[x + y * self.width])
+        Some(&mut self.data[x as usize + y as usize * self.width])
+    }
+
+    /// Sets the value at position (`x`, `y`) of the array to `value`.
+    /// Returns `true` on success, or `false` if the position (`x`, `y`) is outside the dimensions of the array.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use array2d::Array2D;
+    ///
+    /// let mut arr: Array2D<u8> = Array2D::new(3, 4, 0);
+    ///
+    /// assert_eq!(arr.set(2, 3, 1), true);
+    /// assert_eq!(arr.set(-2, 1, 2), false);
+    ///
+    /// assert_eq!(arr[[2, 3]], 1);
+    /// ```
+    pub fn set(&mut self, x: isize, y: isize, value: T) -> bool {
+        if x < 0 || x as usize >= self.width || y < 0 || y as usize >= self.height {
+            return false;
+        }
+        self.data[x as usize + y as usize * self.width] = value;
+        true
     }
 
     /// Returns the width of the array.
@@ -203,31 +203,31 @@ impl<T> Array2D<T> {
     }
 }
 
-impl<T> Index<[usize; 2]> for Array2D<T> {
+impl<T> Index<[isize; 2]> for Array2D<T> {
     type Output = T;
 
-    fn index(&self, index: [usize; 2]) -> &Self::Output {
+    fn index(&self, index: [isize; 2]) -> &Self::Output {
         self.get(index[0], index[1]).expect("index out of bounds")
     }
 }
 
-impl<T> IndexMut<[usize; 2]> for Array2D<T> {
-    fn index_mut(&mut self, index: [usize; 2]) -> &mut Self::Output {
+impl<T> IndexMut<[isize; 2]> for Array2D<T> {
+    fn index_mut(&mut self, index: [isize; 2]) -> &mut Self::Output {
         self.get_mut(index[0], index[1])
             .expect("index out of bounds")
     }
 }
 
-impl<T> Index<(usize, usize)> for Array2D<T> {
+impl<T> Index<(isize, isize)> for Array2D<T> {
     type Output = T;
 
-    fn index(&self, index: (usize, usize)) -> &Self::Output {
+    fn index(&self, index: (isize, isize)) -> &Self::Output {
         self.get(index.0, index.1).expect("index out of bounds")
     }
 }
 
-impl<T> IndexMut<(usize, usize)> for Array2D<T> {
-    fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {
+impl<T> IndexMut<(isize, isize)> for Array2D<T> {
+    fn index_mut(&mut self, index: (isize, isize)) -> &mut Self::Output {
         self.get_mut(index.0, index.1).expect("index out of bounds")
     }
 }

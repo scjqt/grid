@@ -1,1 +1,1 @@
-A simple 2D array crate.
+A simple generic 2D array crate.

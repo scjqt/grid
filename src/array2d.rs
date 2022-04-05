@@ -1,6 +1,8 @@
 use std::{
     fmt::{self, Debug, Display},
     ops::{Index, IndexMut},
+    slice::{Iter, IterMut},
+    vec::IntoIter,
 };
 
 /// A simple generic 2D array struct.
@@ -58,22 +60,56 @@ where
 impl<T> Array2D<T> {
     /// Constructs a new `Array2D<T>` with the given dimensions, computing all initial values from the closure `f`.
     ///
+    /// If `T` implements the [`Default`] trait, [`Default::default`] can be passed in.
+    ///
     /// # Examples
     ///
     /// ```
     /// use array2d::Array2D;
     ///
-    /// let arr: Array2D<u8> = Array2D::new_with(3, 3, || 2);
+    /// let arr: Array2D<u8> = Array2D::from_simple_fn(3, 3, || 2);
     ///
     /// assert_eq!(arr[[1, 2]], 2);
+    ///
+    /// let arr: Array2D<u8> = Array2D::from_simple_fn(2, 6, Default::default);
+    ///
+    /// assert_eq!(arr[[0, 4]], 0);
     /// ```
-    pub fn new_with<F>(width: usize, height: usize, f: F) -> Array2D<T>
+    pub fn from_simple_fn<F>(width: usize, height: usize, f: F) -> Array2D<T>
     where
         F: FnMut() -> T,
     {
         let size = width.checked_mul(height).expect("dimensions too large");
         let mut data = Vec::with_capacity(size);
         data.resize_with(size, f);
+        Array2D {
+            data,
+            width,
+            height,
+        }
+    }
+    /// Constructs a new `Array2D<T>` with the given dimensions, computing all initial values from the closure `f` which maps each position (`x`, `y`) to a value.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use array2d::Array2D;
+    ///
+    /// let arr: Array2D<usize> = Array2D::from_fn(8, 4, |(x, y)| x + y);
+    ///
+    /// assert_eq!(arr[[5, 3]], 8);
+    /// assert_eq!(arr[[1, 2]], 3);
+    /// ```
+    pub fn from_fn<F>(width: usize, height: usize, mut f: F) -> Array2D<T>
+    where
+        F: FnMut((usize, usize)) -> T,
+    {
+        let mut data = Vec::with_capacity(width.checked_mul(height).expect("dimensions too large"));
+        for y in 0..height {
+            for x in 0..width {
+                data.push(f((x, y)));
+            }
+        }
         Array2D {
             data,
             width,
@@ -115,9 +151,9 @@ impl<T> Array2D<T> {
     ///
     /// let mut arr: Array2D<u8> = Array2D::new(6, 7, 0);
     ///
-    /// arr[[5, 3]] = 1;
+    /// arr[[5, 3]] = 3;
     ///
-    /// assert_eq!(arr.get_mut(5, 3), Some(&mut 1));
+    /// assert_eq!(arr.get_mut(5, 3), Some(&mut 3));
     /// assert_eq!(arr.get_mut(4, 7), None);
     /// ```
     pub fn get_mut(&mut self, x: usize, y: usize) -> Option<&mut T> {
@@ -137,10 +173,10 @@ impl<T> Array2D<T> {
     ///
     /// let mut arr: Array2D<u8> = Array2D::new(3, 4, 0);
     ///
-    /// assert_eq!(arr.set(2, 3, 1), true);
-    /// assert_eq!(arr.set(3, 1, 2), false);
+    /// assert_eq!(arr.set(2, 3, 4), true);
+    /// assert_eq!(arr.set(3, 1, 5), false);
     ///
-    /// assert_eq!(arr[[2, 3]], 1);
+    /// assert_eq!(arr[[2, 3]], 4);
     /// ```
     pub fn set(&mut self, x: usize, y: usize, value: T) -> bool {
         if x >= self.width || y >= self.height {
@@ -157,9 +193,9 @@ impl<T> Array2D<T> {
     /// ```
     /// use array2d::Array2D;
     ///
-    /// let arr: Array2D<u8> = Array2D::new(3, 2, 0);
+    /// let arr: Array2D<u8> = Array2D::new(9, 6, 0);
     ///
-    /// assert_eq!(arr.width(), 3);
+    /// assert_eq!(arr.width(), 9);
     /// ```
     pub fn width(&self) -> usize {
         self.width
@@ -178,6 +214,180 @@ impl<T> Array2D<T> {
     /// ```
     pub fn height(&self) -> usize {
         self.height
+    }
+
+    /// Returns an iterator over immutable references to the values in the array, in row-major order.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use array2d::Array2D;
+    ///
+    /// let mut arr: Array2D<u8> = Array2D::new(5, 5, 2);
+    /// arr[[1, 0]] = 3;
+    ///
+    /// let mut iter = arr.iter();
+    ///
+    /// assert_eq!(iter.next(), Some(&2));
+    /// assert_eq!(iter.next(), Some(&3));
+    ///
+    /// let mut sum = 0;
+    /// for value in arr.iter() {
+    ///     sum += *value;
+    /// }
+    ///
+    /// assert_eq!(sum, 51);
+    /// assert_eq!(arr.iter().sum::<u8>(), 51);
+    /// ```
+    pub fn iter(&self) -> Iter<'_, T> {
+        self.data.iter()
+    }
+
+    /// Returns an iterator over mutable references to the values in the array, in row-major order.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use array2d::Array2D;
+    ///
+    /// let mut arr: Array2D<u8> = Array2D::new(4, 6, 0);
+    /// arr[[1, 0]] = 2;
+    ///
+    /// let mut iter = arr.iter_mut();
+    ///
+    /// assert_eq!(iter.next(), Some(&mut 0));
+    /// assert_eq!(iter.next(), Some(&mut 2));
+    ///
+    /// for value in arr.iter_mut() {
+    ///     *value += 1;
+    /// }
+    ///
+    /// assert_eq!(arr[[1, 0]], 3);
+    /// assert_eq!(arr[[3, 5]], 1);
+    /// ```
+    pub fn iter_mut(&mut self) -> IterMut<'_, T> {
+        self.data.iter_mut()
+    }
+
+    /// Returns an iterator over the values in the array, in row-major order, consuming the array.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use array2d::Array2D;
+    ///
+    /// let mut arr: Array2D<u8> = Array2D::new(4, 1, 7);
+    /// arr[[1, 0]] = 5;
+    ///
+    /// let mut iter = arr.clone().into_iter();
+    ///
+    /// assert_eq!(iter.next(), Some(7));
+    /// assert_eq!(iter.next(), Some(5));
+    ///
+    /// let mut sum = 0;
+    /// for value in arr.into_iter() {
+    ///     sum += value;
+    /// }
+    ///
+    /// assert_eq!(sum, 26);
+    /// ```
+    pub fn into_iter(self) -> IntoIter<T> {
+        self.data.into_iter()
+    }
+
+    /// Returns an iterator over every (`x`, `y`) position that can be used to index into the array, in row-major order.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use array2d::Array2D;
+    ///
+    /// let mut arr: Array2D<u8> = Array2D::new(3, 2, 0);
+    ///
+    /// let mut pos = arr.positions();
+    ///
+    /// assert_eq!(pos.next(), Some((0, 0)));
+    /// assert_eq!(pos.next(), Some((1, 0)));
+    /// assert_eq!(pos.next(), Some((2, 0)));
+    /// assert_eq!(pos.next(), Some((0, 1)));
+    /// assert_eq!(pos.next(), Some((1, 1)));
+    /// assert_eq!(pos.next(), Some((2, 1)));
+    /// assert_eq!(pos.next(), None);
+    ///
+    /// let mut pos = arr.positions();
+    ///
+    /// for value in arr.iter() {
+    ///     assert_eq!(*value, arr[pos.next().unwrap()]);
+    /// }
+    /// ```
+    pub fn positions(&self) -> PositionIter {
+        PositionIter {
+            x: 0,
+            y: 0,
+            width: self.width,
+            height: self.height,
+        }
+    }
+
+    /// Returns an iterator over every position and value in the array, in row-major order.
+    ///
+    /// Values from this iterator come in the form of a tuple containing the position and then an immutable reference to the value:
+    /// `((usize, usize), &T)`
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use array2d::Array2D;
+    ///
+    /// let arr: Array2D<u8> = Array2D::new(3, 10, 7);
+    ///
+    /// for ((x, y), value) in arr.iter_positions() {
+    ///     assert_eq!(arr[[x, y]], *value);
+    ///     assert_eq!(value, &7);
+    /// }
+    /// ```
+    pub fn iter_positions(&self) -> impl IntoIterator<Item = ((usize, usize), &T)> {
+        self.positions().zip(self.iter())
+    }
+
+    /// Returns an iterator over every position and value in the array, in row-major order.
+    ///
+    /// Values from this iterator come in the form of a tuple containing the position and then a mutable reference to the value:
+    /// `((usize, usize), &mut T)`
+    ///
+    /// ```
+    /// use array2d::Array2D;
+    ///
+    /// let mut arr: Array2D<usize> = Array2D::new(5, 4, 3);
+    ///
+    /// for ((x, y), value) in arr.iter_mut_positions() {
+    ///     *value = x + y;
+    /// }
+    ///
+    /// assert_eq!(arr[[2, 3]], 5);
+    /// assert_eq!(arr[[4, 0]], 4);
+    /// ```
+    pub fn iter_mut_positions(&mut self) -> impl IntoIterator<Item = ((usize, usize), &mut T)> {
+        self.positions().zip(self.iter_mut())
+    }
+
+    /// Returns an iterator over every position and value in the array, in row-major order, consuming the array.
+    ///
+    /// Values from this iterator come in the form of a tuple containing the position and then the value:
+    /// `((usize, usize), T)`
+    ///
+    /// ```
+    /// use array2d::Array2D;
+    ///
+    /// let arr: Array2D<u8> = Array2D::new(5, 4, 6);
+    ///
+    /// for ((x, y), value) in arr.into_iter_positions() {
+    ///     assert_eq!(value, 6);
+    ///     println!("({}, {}): {}", x, y, value);
+    /// }
+    /// ```
+    pub fn into_iter_positions(self) -> impl IntoIterator<Item = ((usize, usize), T)> {
+        self.positions().zip(self.into_iter())
     }
 }
 
@@ -210,6 +420,55 @@ impl<T> IndexMut<(usize, usize)> for Array2D<T> {
     }
 }
 
+/// An iterator over every (`x`, `y`) position that can be used to index into an array, in row-major order.
+///
+/// # Examples
+///
+/// ```
+/// use array2d::Array2D;
+///
+/// let mut arr: Array2D<u8> = Array2D::new(3, 2, 0);
+///
+/// let mut iter = arr.positions();
+///
+/// assert_eq!(iter.next(), Some((0, 0)));
+/// assert_eq!(iter.next(), Some((1, 0)));
+/// assert_eq!(iter.next(), Some((2, 0)));
+/// assert_eq!(iter.next(), Some((0, 1)));
+/// assert_eq!(iter.next(), Some((1, 1)));
+/// assert_eq!(iter.next(), Some((2, 1)));
+/// assert_eq!(iter.next(), None);
+///
+/// let mut iter = arr.positions();
+///
+/// for value in arr.iter() {
+///     assert_eq!(*value, arr[iter.next().unwrap()]);
+/// }
+/// ```
+pub struct PositionIter {
+    x: usize,
+    y: usize,
+    width: usize,
+    height: usize,
+}
+
+impl Iterator for PositionIter {
+    type Item = (usize, usize);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.y < self.height {
+            let pos = (self.x, self.y);
+            self.x += 1;
+            if self.x == self.width {
+                self.x = 0;
+                self.y += 1;
+            }
+            return Some(pos);
+        }
+        None
+    }
+}
+
 impl<T> Debug for Array2D<T>
 where
     T: Display,
@@ -232,7 +491,7 @@ where
         }
 
         writeln!(f)?;
-        writeln!(f, "width: {}", self.width)?;
+        writeln!(f, "width:  {}", self.width)?;
         write!(f, "height: {}", self.height)?;
 
         Ok(())

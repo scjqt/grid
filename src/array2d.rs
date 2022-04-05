@@ -29,7 +29,7 @@ where
     T: Clone,
 {
     /// Constructs a new `Array2D<T>` with the given dimensions, initialising all values to `value`.
-    /// Requires that `T` is `Clone`.
+    /// Requires that `T` implements the [`Clone`] trait.
     ///
     /// # Examples
     ///
@@ -41,35 +41,9 @@ where
     /// assert_eq!(arr[[2, 4]], 1);
     /// ```
     pub fn new(width: usize, height: usize, value: T) -> Array2D<T> {
-        let mut data = Vec::with_capacity(width * height);
-        data.resize(width * height, value);
-        Array2D {
-            data,
-            width,
-            height,
-        }
-    }
-}
-
-impl<T> Array2D<T>
-where
-    T: Default,
-{
-    /// Constructs a new `Array2D<T>` with the given dimensions, initialising all values to `T::default()`.
-    /// Requires that `T` is `Default`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use array2d::Array2D;
-    ///
-    /// let arr: Array2D<u8> = Array2D::default_new(4, 2);
-    ///
-    /// assert_eq!(arr[[3, 1]], 0);
-    /// ```
-    pub fn default_new(width: usize, height: usize) -> Array2D<T> {
-        let mut data = Vec::with_capacity(width * height);
-        data.resize_with(width * height, || T::default());
+        let size = width.checked_mul(height).expect("dimensions too large");
+        let mut data = Vec::with_capacity(size);
+        data.resize(size, value);
         Array2D {
             data,
             width,
@@ -86,16 +60,17 @@ impl<T> Array2D<T> {
     /// ```
     /// use array2d::Array2D;
     ///
-    /// let arr: Array2D<u8> = Array2D::closure_new(3, 3, || 2);
+    /// let arr: Array2D<u8> = Array2D::new_with(3, 3, || 2);
     ///
-    /// assert_eq!(arr[[0, 2]], 2);
+    /// assert_eq!(arr[[1, 2]], 2);
     /// ```
-    pub fn closure_new<F>(width: usize, height: usize, f: F) -> Array2D<T>
+    pub fn new_with<F>(width: usize, height: usize, f: F) -> Array2D<T>
     where
         F: FnMut() -> T,
     {
-        let mut data = Vec::with_capacity(width * height);
-        data.resize_with(width * height, f);
+        let size = width.checked_mul(height).expect("dimensions too large");
+        let mut data = Vec::with_capacity(size);
+        data.resize_with(size, f);
         Array2D {
             data,
             width,
@@ -114,9 +89,9 @@ impl<T> Array2D<T> {
     ///
     /// let mut arr: Array2D<u8> = Array2D::new(5, 2, 0);
     ///
-    /// arr[[0, 0]] = 1;
+    /// arr[[1, 1]] = 1;
     ///
-    /// assert_eq!(arr.get(0, 0), Some(&1));
+    /// assert_eq!(arr.get(1, 1), Some(&1));
     /// assert_eq!(arr.get(3, 2), None);
     /// ```
     pub fn get(&self, x: usize, y: usize) -> Option<&T> {

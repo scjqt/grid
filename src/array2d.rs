@@ -12,9 +12,9 @@ use std::{
 /// * `y`, the second value, determines which row the position is in
 ///
 /// There are `width` columns and `height` rows in the array, and the array's iterators traverse it in row-major order.
-/// 
+///
 /// Implements the [`Debug`] trait if `T` implements the [`Display`] trait.
-/// 
+///
 /// Indexable mutably and immutably by `(usize, usize)` and `[usize; 2]`.
 ///
 /// # Examples
@@ -30,7 +30,7 @@ use std::{
 /// assert_eq!(arr[[3, 5]], 2);
 /// assert_eq!(arr[(1, 0)], 1);
 /// assert_eq!(arr[[6, 4]], 0);
-/// 
+///
 /// println!("{:?}", arr);
 /// ```
 #[derive(PartialEq, Eq, Clone)]
@@ -131,6 +131,36 @@ impl<T> Array2D<T> {
         }
     }
 
+    /// Returns the width of the array.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use array2d::Array2D;
+    ///
+    /// let arr: Array2D<u8> = Array2D::new(8, 10, 9);
+    ///
+    /// assert_eq!(arr.width(), 8);
+    /// ```
+    pub fn width(&self) -> usize {
+        self.width
+    }
+
+    /// Returns the height of the array.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use array2d::Array2D;
+    ///
+    /// let arr: Array2D<u8> = Array2D::new(8, 10, 10);
+    ///
+    /// assert_eq!(arr.height(), 10);
+    /// ```
+    pub fn height(&self) -> usize {
+        self.height
+    }
+
     /// Gets a reference to the value at the given position of the array.
     /// If the position is within the dimensions of the array, returns `Some(&T)`.
     /// Otherwise, returns `None`.
@@ -222,7 +252,7 @@ impl<T> Array2D<T> {
     /// assert_eq!(arr.get_offset((0, 0), (-1, 0)), None);
     /// ```
     pub fn get_offset(&self, pos: (usize, usize), offset: (isize, isize)) -> Option<&T> {
-        self.get(offset_checked(pos, offset)?)
+        self.get(self.offset_checked(pos, offset)?)
     }
 
     /// Gets a mutable reference to the value at the given position of the array, after offsetting it.
@@ -247,7 +277,7 @@ impl<T> Array2D<T> {
         pos: (usize, usize),
         offset: (isize, isize),
     ) -> Option<&mut T> {
-        self.get_mut(offset_checked(pos, offset)?)
+        self.get_mut(self.offset_checked(pos, offset)?)
     }
 
     /// Sets the value at the given position of the array, after offsetting it, to `value`.
@@ -266,40 +296,10 @@ impl<T> Array2D<T> {
     /// assert_eq!(arr[[6, 5]], 0);
     /// ```
     pub fn set_offset(&mut self, pos: (usize, usize), offset: (isize, isize), value: T) -> bool {
-        if let Some(pos) = offset_checked(pos, offset) {
+        if let Some(pos) = self.offset_checked(pos, offset) {
             return self.set(pos, value);
         }
         false
-    }
-
-    /// Returns the width of the array.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use array2d::Array2D;
-    ///
-    /// let arr: Array2D<u8> = Array2D::new(8, 10, 9);
-    ///
-    /// assert_eq!(arr.width(), 8);
-    /// ```
-    pub fn width(&self) -> usize {
-        self.width
-    }
-
-    /// Returns the height of the array.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use array2d::Array2D;
-    ///
-    /// let arr: Array2D<u8> = Array2D::new(8, 10, 10);
-    ///
-    /// assert_eq!(arr.height(), 10);
-    /// ```
-    pub fn height(&self) -> usize {
-        self.height
     }
 
     /// Returns an iterator over references to the values in the array, in row-major order.
@@ -475,6 +475,32 @@ impl<T> Array2D<T> {
     pub fn into_iter_positions(self) -> impl IntoIterator<Item = ((usize, usize), T)> {
         self.positions().zip(self.into_iter())
     }
+
+    /// Offsets the given position, returning the result.
+    ///
+    /// If the resulting position is inside the dimensions of the array, returns `Some((usize, usize))`.
+    /// Otherwise, returns `None`.
+    ///
+    /// # Examples
+    /// ```
+    /// use array2d::Array2D;
+    ///
+    /// let arr: Array2D<u8> = Array2D::new(8, 10, 7);
+    ///
+    /// assert_eq!(arr.offset_checked((4, 3), (-3, 6)), Some((1, 9)));
+    /// assert_eq!(arr.offset_checked((6, 2), (-5, -3)), None);
+    /// assert_eq!(arr.offset_checked((5, 9), (1, 2)), None);
+    /// ```
+    pub fn offset_checked(
+        &self,
+        pos: (usize, usize),
+        offset: (isize, isize),
+    ) -> Option<(usize, usize)> {
+        Some((
+            offset_value_checked(pos.0, offset.0, self.width)?,
+            offset_value_checked(pos.1, offset.1, self.height)?,
+        ))
+    }
 }
 
 impl<T> Index<[usize; 2]> for Array2D<T> {
@@ -584,20 +610,18 @@ impl Iterator for PositionIter {
     }
 }
 
-fn offset_checked(pos: (usize, usize), offset: (isize, isize)) -> Option<(usize, usize)> {
-    Some((
-        offset_value_checked(pos.0, offset.0)?,
-        offset_value_checked(pos.1, offset.1)?,
-    ))
-}
-
-fn offset_value_checked(value: usize, offset: isize) -> Option<usize> {
-    if offset < 0 {
+fn offset_value_checked(value: usize, offset: isize, limit: usize) -> Option<usize> {
+    let new = if offset < 0 {
         let abs = offset.abs() as usize;
         if abs > value {
             return None;
         }
-        return Some(value - abs);
+        value - abs
+    } else {
+        value.checked_add(offset as usize)?
+    };
+    if new >= limit {
+        return None;
     }
-    value.checked_add(offset as usize)
+    Some(new)
 }

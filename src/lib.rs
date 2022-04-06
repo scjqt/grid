@@ -1,3 +1,3 @@
-pub use crate::array2d::Array2D;
+pub use crate::array2d::{iterators, Array2D};
 
 mod array2d;

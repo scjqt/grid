@@ -1,8 +1,8 @@
+pub mod iterators;
+
 use std::{
     fmt::{self, Debug, Display},
     ops::{Index, IndexMut},
-    slice::{Iter, IterMut},
-    vec::IntoIter,
 };
 
 /// A simple generic 2D array struct.
@@ -234,29 +234,9 @@ impl<T> Array2D<T> {
         true
     }
 
-    /// Gets a reference to the value at the given position of the array, after offsetting it.
-    /// If the new position is within the dimensions of the array, returns `Some(&T)`.
-    /// Otherwise, returns `None`.
+    /// Offsets the given position, returning the result.
     ///
-    /// # Examples
-    ///
-    /// ```
-    /// use array2d::Array2D;
-    ///
-    /// let mut arr: Array2D<u8> = Array2D::new(8, 10, 6);
-    ///
-    /// arr[[7, 8]] = 1;
-    ///
-    /// assert_eq!(arr.get_offset((1, 3), (6, 5)), Some(&1));
-    /// assert_eq!(arr.get_offset((10, 12), (-5, -3)), Some(&6));
-    /// assert_eq!(arr.get_offset((0, 0), (-1, 0)), None);
-    /// ```
-    pub fn get_offset(&self, pos: (usize, usize), offset: (isize, isize)) -> Option<&T> {
-        self.get(self.offset_checked(pos, offset)?)
-    }
-
-    /// Gets a mutable reference to the value at the given position of the array, after offsetting it.
-    /// If the new position is within the dimensions of the array, returns `Some(&mut T)`.
+    /// If the resulting position is inside the dimensions of the array, returns `Some((usize, usize))`.
     /// Otherwise, returns `None`.
     ///
     /// # Examples
@@ -266,239 +246,20 @@ impl<T> Array2D<T> {
     ///
     /// let mut arr: Array2D<u8> = Array2D::new(8, 10, 7);
     ///
-    /// arr[[6, 3]] = 4;
+    /// assert_eq!(arr.offset((4, 3), (-3, 6)), Some((1, 9)));
+    /// assert_eq!(arr.offset((6, 2), (-5, -3)), None);
+    /// assert_eq!(arr.offset((5, 9), (1, 2)), None);
     ///
-    /// assert_eq!(arr.get_offset((4, 11), (2, -8)), Some(&4));
-    /// assert_eq!(arr.get_offset((3, 2), (1, -1)), Some(&7));
-    /// assert_eq!(arr.get_offset((1, 5), (7, 0)), None);
-    /// ```
-    pub fn get_mut_offset(
-        &mut self,
-        pos: (usize, usize),
-        offset: (isize, isize),
-    ) -> Option<&mut T> {
-        self.get_mut(self.offset_checked(pos, offset)?)
-    }
-
-    /// Sets the value at the given position of the array, after offsetting it, to `value`.
-    /// Returns `true` on success, or `false` if the new position is outside the dimensions of the array.
+    /// arr[[3, 6]] = 2;
     ///
-    /// # Examples
-    ///
-    /// ```
-    /// use array2d::Array2D;
-    ///
-    /// let mut arr: Array2D<u8> = Array2D::new(8, 10, 8);
-    ///
-    /// assert_eq!(arr.set_offset((5, 9), (1, -4), 0), true);
-    /// assert_eq!(arr.set_offset((0, 10), (5, 0), 6), false);
-    ///
-    /// assert_eq!(arr[[6, 5]], 0);
-    /// ```
-    pub fn set_offset(&mut self, pos: (usize, usize), offset: (isize, isize), value: T) -> bool {
-        if let Some(pos) = self.offset_checked(pos, offset) {
-            return self.set(pos, value);
-        }
-        false
-    }
-
-    /// Returns an iterator over references to the values in the array, in row-major order.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use array2d::Array2D;
-    ///
-    /// let mut arr: Array2D<u8> = Array2D::new(5, 5, 2);
-    /// arr[[1, 0]] = 3;
-    ///
-    /// let mut iter = arr.iter();
-    ///
-    /// assert_eq!(iter.next(), Some(&2));
-    /// assert_eq!(iter.next(), Some(&3));
-    ///
-    /// let mut sum = 0;
-    /// for value in arr.iter() {
-    ///     sum += *value;
-    /// }
-    ///
-    /// assert_eq!(sum, 51);
-    /// assert_eq!(arr.iter().sum::<u8>(), 51);
-    /// ```
-    pub fn iter(&self) -> Iter<T> {
-        self.data.iter()
-    }
-
-    /// Returns an iterator over mutable references to the values in the array, in row-major order.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use array2d::Array2D;
-    ///
-    /// let mut arr: Array2D<u8> = Array2D::new(8, 10, 0);
-    /// arr[[1, 0]] = 2;
-    ///
-    /// let mut iter = arr.iter_mut();
-    ///
-    /// assert_eq!(iter.next(), Some(&mut 0));
-    /// assert_eq!(iter.next(), Some(&mut 2));
-    ///
-    /// for value in arr.iter_mut() {
-    ///     *value += 1;
-    /// }
-    ///
-    /// assert_eq!(arr[[1, 0]], 3);
-    /// assert_eq!(arr[[3, 5]], 1);
-    /// ```
-    pub fn iter_mut(&mut self) -> IterMut<T> {
-        self.data.iter_mut()
-    }
-
-    /// Returns an iterator over the values in the array, in row-major order, consuming the array.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use array2d::Array2D;
-    ///
-    /// let mut arr: Array2D<u8> = Array2D::new(5, 5, 7);
-    /// arr[[1, 0]] = 5;
-    ///
-    /// let mut iter = arr.clone().into_iter();
-    ///
-    /// assert_eq!(iter.next(), Some(7));
-    /// assert_eq!(iter.next(), Some(5));
-    ///
-    /// let mut sum = 0;
-    /// for value in arr.into_iter() {
-    ///     sum += value;
-    /// }
-    ///
-    /// assert_eq!(sum, 173);
-    /// ```
-    pub fn into_iter(self) -> IntoIter<T> {
-        self.data.into_iter()
-    }
-
-    /// Returns an iterator over every position that can be used to index into the array, in row-major order.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use array2d::Array2D;
-    ///
-    /// let mut arr: Array2D<u8> = Array2D::new(3, 2, 0);
-    ///
-    /// let mut pos = arr.positions();
-    ///
-    /// assert_eq!(pos.next(), Some((0, 0)));
-    /// assert_eq!(pos.next(), Some((1, 0)));
-    /// assert_eq!(pos.next(), Some((2, 0)));
-    /// assert_eq!(pos.next(), Some((0, 1)));
-    /// assert_eq!(pos.next(), Some((1, 1)));
-    /// assert_eq!(pos.next(), Some((2, 1)));
-    /// assert_eq!(pos.next(), None);
-    ///
-    /// let mut pos = arr.positions();
-    ///
-    /// for value in arr.iter() {
-    ///     assert_eq!(*value, arr[pos.next().unwrap()]);
+    /// if let Some(adj) = arr.offset((1, 9), (2, -3)) {
+    ///     assert_eq!(arr[adj], 2);
     /// }
     /// ```
-    pub fn positions(&self) -> PositionIter {
-        PositionIter {
-            x: 0,
-            y: 0,
-            width: self.width,
-            height: self.height,
-        }
-    }
-
-    /// Returns an iterator over every position and value in the array, in row-major order.
-    ///
-    /// Values from this iterator come in the form of a tuple containing the position and a reference to the value:
-    /// `((usize, usize), &T)`
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use array2d::Array2D;
-    ///
-    /// let arr: Array2D<usize> = Array2D::from_fn(8, 10, |(x, y)| x * 2 + y);
-    ///
-    /// for ((x, y), value) in arr.iter_positions() {
-    ///     assert_eq!(arr[[x, y]], *value);
-    ///     assert_eq!(value, &(x * 2 + y));
-    /// }
-    /// ```
-    pub fn iter_positions(&self) -> impl IntoIterator<Item = ((usize, usize), &T)> {
-        self.positions().zip(self.iter())
-    }
-
-    /// Returns an iterator over every position and value in the array, in row-major order.
-    ///
-    /// Values from this iterator come in the form of a tuple containing the position and a mutable reference to the value:
-    /// `((usize, usize), &mut T)`
-    ///
-    /// ```
-    /// use array2d::Array2D;
-    ///
-    /// let mut arr: Array2D<usize> = Array2D::new(8, 10, 3);
-    ///
-    /// for ((x, y), value) in arr.iter_mut_positions() {
-    ///     *value = x * y;
-    /// }
-    ///
-    /// assert_eq!(arr[[2, 3]], 6);
-    /// assert_eq!(arr[[7, 9]], 63);
-    /// ```
-    pub fn iter_mut_positions(&mut self) -> impl IntoIterator<Item = ((usize, usize), &mut T)> {
-        self.positions().zip(self.iter_mut())
-    }
-
-    /// Returns an iterator over every position and value in the array, in row-major order, consuming the array.
-    ///
-    /// Values from this iterator come in the form of a tuple containing the position and the value:
-    /// `((usize, usize), T)`
-    ///
-    /// ```
-    /// use array2d::Array2D;
-    ///
-    /// let arr: Array2D<u8> = Array2D::new(8, 10, 6);
-    ///
-    /// for ((x, y), value) in arr.into_iter_positions() {
-    ///     assert_eq!(value, 6);
-    ///     println!("({}, {}): {}", x, y, value);
-    /// }
-    /// ```
-    pub fn into_iter_positions(self) -> impl IntoIterator<Item = ((usize, usize), T)> {
-        self.positions().zip(self.into_iter())
-    }
-
-    /// Offsets the given position, returning the result.
-    ///
-    /// If the resulting position is inside the dimensions of the array, returns `Some((usize, usize))`.
-    /// Otherwise, returns `None`.
-    ///
-    /// # Examples
-    /// ```
-    /// use array2d::Array2D;
-    ///
-    /// let arr: Array2D<u8> = Array2D::new(8, 10, 7);
-    ///
-    /// assert_eq!(arr.offset_checked((4, 3), (-3, 6)), Some((1, 9)));
-    /// assert_eq!(arr.offset_checked((6, 2), (-5, -3)), None);
-    /// assert_eq!(arr.offset_checked((5, 9), (1, 2)), None);
-    /// ```
-    pub fn offset_checked(
-        &self,
-        pos: (usize, usize),
-        offset: (isize, isize),
-    ) -> Option<(usize, usize)> {
+    pub fn offset(&self, pos: (usize, usize), offset: (isize, isize)) -> Option<(usize, usize)> {
         Some((
-            offset_value_checked(pos.0, offset.0, self.width)?,
-            offset_value_checked(pos.1, offset.1, self.height)?,
+            offset_value(pos.0, offset.0, self.width)?,
+            offset_value(pos.1, offset.1, self.height)?,
         ))
     }
 }
@@ -561,56 +322,7 @@ where
     }
 }
 
-/// An iterator over every position that can be used to index into an array, in row-major order.
-///
-/// # Examples
-///
-/// ```
-/// use array2d::Array2D;
-///
-/// let mut arr: Array2D<u8> = Array2D::new(3, 2, 0);
-///
-/// let mut pos = arr.positions();
-///
-/// assert_eq!(pos.next(), Some((0, 0)));
-/// assert_eq!(pos.next(), Some((1, 0)));
-/// assert_eq!(pos.next(), Some((2, 0)));
-/// assert_eq!(pos.next(), Some((0, 1)));
-/// assert_eq!(pos.next(), Some((1, 1)));
-/// assert_eq!(pos.next(), Some((2, 1)));
-/// assert_eq!(pos.next(), None);
-///
-/// let mut pos = arr.positions();
-///
-/// for value in arr.iter() {
-///     assert_eq!(*value, arr[pos.next().unwrap()]);
-/// }
-/// ```
-pub struct PositionIter {
-    x: usize,
-    y: usize,
-    width: usize,
-    height: usize,
-}
-
-impl Iterator for PositionIter {
-    type Item = (usize, usize);
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.y != self.height {
-            let pos = (self.x, self.y);
-            self.x += 1;
-            if self.x == self.width {
-                self.x = 0;
-                self.y += 1;
-            }
-            return Some(pos);
-        }
-        None
-    }
-}
-
-fn offset_value_checked(value: usize, offset: isize, limit: usize) -> Option<usize> {
+fn offset_value(value: usize, offset: isize, limit: usize) -> Option<usize> {
     let new = if offset < 0 {
         let abs = offset.abs() as usize;
         if abs > value {

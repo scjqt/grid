@@ -305,18 +305,20 @@ where
             }
         }
 
-        for y in 0..self.height {
-            write!(f, "[{}", self[[0, y]])?;
-            for x in 1..self.width {
-                let str = self[[x, y]].to_string();
-                write!(f, ", {}{}", " ".repeat(longest - str.len()), str)?;
-            }
-            writeln!(f, "]")?;
-        }
+        writeln!(f, "{}x{}", self.width, self.height)?;
 
-        writeln!(f)?;
-        writeln!(f, "width:  {}", self.width)?;
-        write!(f, "height: {}", self.height)?;
+        for y in 0..self.height {
+            for x in 0..self.width {
+                let str = self[[x, y]].to_string();
+                write!(f, "{}{}", " ".repeat(longest - str.len()), str)?;
+                if x != self.width - 1 {
+                    write!(f, ", ")?;
+                }
+            }
+            if y != self.height - 1 {
+                writeln!(f)?;
+            }
+        }
 
         Ok(())
     }

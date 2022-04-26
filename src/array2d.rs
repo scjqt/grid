@@ -33,7 +33,7 @@ use std::{
 ///
 /// println!("{:?}", arr);
 /// ```
-#[derive(PartialEq, Eq, Clone)]
+#[derive(PartialEq, Eq, Clone, Hash)]
 pub struct Array2D<T> {
     data: Vec<T>,
     width: usize,

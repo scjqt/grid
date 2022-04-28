@@ -312,7 +312,7 @@ where
                 let str = self[[x, y]].to_string();
                 write!(f, "{}{}", " ".repeat(longest - str.len()), str)?;
                 if x != self.width - 1 {
-                    write!(f, ", ")?;
+                    write!(f, ",")?;
                 }
             }
             if y != self.height - 1 {

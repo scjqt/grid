@@ -1,4 +1,5 @@
-use super::Array2D;
+use crate::Array2D;
+
 use std::{
     iter::Zip,
     slice::{Iter, IterMut},

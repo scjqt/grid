@@ -1,3 +1,32 @@
+//! A simple generic 2D array crate.
+//!
+//! For a position `(x, y)` in the array:
+//! * `x`, the first value, determines which column the position is in
+//! * `y`, the second value, determines which row the position is in
+//!
+//! There are `width` columns and `height` rows in the array, and the array's iterators traverse it in row-major order.
+//!
+//! Implements the [`Debug`] trait if `T` implements the [`Display`] trait.
+//!
+//! Indexable mutably and immutably by `(usize, usize)` and `[usize; 2]`.
+//!
+//! # Examples
+//!
+//! ```
+//! use array2d::Array2D;
+//!
+//! let mut arr: Array2D<u8> = Array2D::new(8, 10, 0);
+//!
+//! arr[[1, 0]] = 1;
+//! arr[(3, 5)] = 2;
+//!
+//! assert_eq!(arr[[3, 5]], 2);
+//! assert_eq!(arr[(1, 0)], 1);
+//! assert_eq!(arr[[6, 4]], 0);
+//!
+//! println!("{:?}", arr);
+//! ```
+
 pub mod iterators;
 
 use std::{
@@ -45,6 +74,7 @@ where
     T: Clone,
 {
     /// Constructs a new `Array2D<T>` with the given dimensions, initialising all values to `value`.
+    ///
     /// Requires that `T` implements the [`Clone`] trait.
     ///
     /// # Examples

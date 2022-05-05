@@ -1,4 +1,4 @@
-//! A simple generic 2D array crate.
+//! A simple generic 2D array library.
 //!
 //! For a position `(x, y)` in the array:
 //! * `x`, the first value, determines which column the position is in

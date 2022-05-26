@@ -146,6 +146,8 @@ impl<T> Array2D<T> {
     /// Values from this iterator come in the form of a tuple containing the position and a mutable reference to the value:
     /// `((usize, usize), &mut T)`
     ///
+    /// # Examples
+    ///
     /// ```
     /// use array2d::Array2D;
     ///
@@ -166,6 +168,8 @@ impl<T> Array2D<T> {
     ///
     /// Values from this iterator come in the form of a tuple containing the position and the value:
     /// `((usize, usize), T)`
+    ///
+    /// # Examples
     ///
     /// ```
     /// use array2d::Array2D;
@@ -271,6 +275,8 @@ impl<'a, T> Iterator for PositionIter<'a, T> {
 /// Values from this iterator come in the form of a tuple containing the position and a mutable reference to the value:
 /// `((usize, usize), &mut T)`
 ///
+/// # Examples
+///
 /// ```
 /// use array2d::Array2D;
 ///
@@ -305,6 +311,8 @@ impl<'a, T> Iterator for PositionIterMut<'a, T> {
 ///
 /// Values from this iterator come in the form of a tuple containing the position and the value:
 /// `((usize, usize), T)`
+///
+/// # Examples
 ///
 /// ```
 /// use array2d::Array2D;

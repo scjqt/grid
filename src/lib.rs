@@ -1,4 +1,4 @@
-//! A simple generic 2D array library.
+//! A simple generic heap-allocated 2D array library.
 //!
 //! For a position `(x, y)` in the array:
 //! * `x`, the first value, determines which column the position is in
@@ -34,7 +34,7 @@ use std::{
     ops::{Index, IndexMut},
 };
 
-/// A simple generic 2D array struct.
+/// A simple generic heap-allocated 2D array struct.
 ///
 /// For a position `(x, y)` in the array:
 /// * `x`, the first value, determines which column the position is in

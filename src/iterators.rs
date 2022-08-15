@@ -60,32 +60,6 @@ impl<T> Array2D<T> {
         self.data.iter_mut()
     }
 
-    /// Returns an iterator over the values in the array, in row-major order, consuming the array.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use array2d::Array2D;
-    ///
-    /// let mut arr: Array2D<u8> = Array2D::new(5, 5, 7);
-    /// arr[[1, 0]] = 5;
-    ///
-    /// let mut iter = arr.clone().into_iter();
-    ///
-    /// assert_eq!(iter.next(), Some(7));
-    /// assert_eq!(iter.next(), Some(5));
-    ///
-    /// let mut sum = 0;
-    /// for value in arr.into_iter() {
-    ///     sum += value;
-    /// }
-    ///
-    /// assert_eq!(sum, 173);
-    /// ```
-    pub fn into_iter(self) -> IntoIter<T> {
-        self.data.into_iter()
-    }
-
     /// Returns an iterator over every position that can be used to index into the array, in row-major order.
     ///
     /// # Examples
@@ -183,6 +157,37 @@ impl<T> Array2D<T> {
     /// ```
     pub fn into_iter_positions(self) -> PositionIntoIter<T> {
         PositionIntoIter::new(self.positions().zip(self.into_iter()))
+    }
+}
+
+impl<T> IntoIterator for Array2D<T> {
+    type Item = T;
+    type IntoIter = IntoIter<Self::Item>;
+
+    /// Returns an iterator over the values in the array, in row-major order, consuming the array.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use array2d::Array2D;
+    ///
+    /// let mut arr: Array2D<u8> = Array2D::new(5, 5, 7);
+    /// arr[[1, 0]] = 5;
+    ///
+    /// let mut iter = arr.clone().into_iter();
+    ///
+    /// assert_eq!(iter.next(), Some(7));
+    /// assert_eq!(iter.next(), Some(5));
+    ///
+    /// let mut sum = 0;
+    /// for value in arr.into_iter() {
+    ///     sum += value;
+    /// }
+    ///
+    /// assert_eq!(sum, 173);
+    /// ```
+    fn into_iter(self) -> Self::IntoIter {
+        self.data.into_iter()
     }
 }
 

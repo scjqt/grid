@@ -8,7 +8,7 @@
 //!
 //! Implements the [`Debug`] trait if `T` implements the [`Display`] trait.
 //!
-//! Indexable mutably and immutably by `(usize, usize)` and `[usize; 2]`.
+//! Indexable mutably and immutably by `(T, T)` if `T: TryInto<usize>`.
 //!
 //! # Examples
 //!
@@ -17,12 +17,12 @@
 //!
 //! let mut arr: Array2D<u8> = Array2D::new(8, 10, 0);
 //!
-//! arr[[1, 0]] = 1;
+//! arr[(1, 0)] = 1;
 //! arr[(3, 5)] = 2;
 //!
-//! assert_eq!(arr[[3, 5]], 2);
+//! assert_eq!(arr[(3, 5)], 2);
 //! assert_eq!(arr[(1, 0)], 1);
-//! assert_eq!(arr[[6, 4]], 0);
+//! assert_eq!(arr[(6, 4)], 0);
 //!
 //! println!("{:?}", arr);
 //! ```
@@ -30,7 +30,7 @@
 pub mod iterators;
 
 use std::{
-    fmt::{self, Debug, Display},
+    fmt,
     ops::{Index, IndexMut},
 };
 
@@ -44,7 +44,7 @@ use std::{
 ///
 /// Implements the [`Debug`] trait if `T` implements the [`Display`] trait.
 ///
-/// Indexable mutably and immutably by `(usize, usize)` and `[usize; 2]`.
+/// Indexable mutably and immutably by `(T, T)` if `T: TryInto<usize>`.
 ///
 /// # Examples
 ///
@@ -53,12 +53,12 @@ use std::{
 ///
 /// let mut arr: Array2D<u8> = Array2D::new(8, 10, 0);
 ///
-/// arr[[1, 0]] = 1;
+/// arr[(1, 0)] = 1;
 /// arr[(3, 5)] = 2;
 ///
-/// assert_eq!(arr[[3, 5]], 2);
+/// assert_eq!(arr[(3, 5)], 2);
 /// assert_eq!(arr[(1, 0)], 1);
-/// assert_eq!(arr[[6, 4]], 0);
+/// assert_eq!(arr[(6, 4)], 0);
 ///
 /// println!("{:?}", arr);
 /// ```
@@ -69,10 +69,7 @@ pub struct Array2D<T> {
     height: usize,
 }
 
-impl<T> Array2D<T>
-where
-    T: Clone,
-{
+impl<T: Clone> Array2D<T> {
     /// Constructs a new `Array2D<T>` with the given dimensions, initialising all values to `value`.
     ///
     /// Requires that `T` implements the [`Clone`] trait.
@@ -84,13 +81,40 @@ where
     ///
     /// let arr: Array2D<u8> = Array2D::new(8, 10, 1);
     ///
-    /// assert_eq!(arr[[2, 4]], 1);
-    /// assert_eq!(arr[[7, 3]], 1);
+    /// assert_eq!(arr[(2, 4)], 1);
+    /// assert_eq!(arr[(7, 3)], 1);
     /// ```
     pub fn new(width: usize, height: usize, value: T) -> Array2D<T> {
-        let size = width.checked_mul(height).expect("dimensions too large");
+        let size = size(width, height);
         let mut data = Vec::with_capacity(size);
         data.resize(size, value);
+        Array2D {
+            data,
+            width,
+            height,
+        }
+    }
+}
+
+impl<T: Default> Array2D<T> {
+    /// Constructs a new `Array2D<T>` with the given dimensions, initialising all values to their default value.
+    ///
+    /// Requires that `T` implements the [`Default`] trait.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use array2d::Array2D;
+    ///
+    /// let arr: Array2D<u8> = Array2D::default(9, 3);
+    ///
+    /// assert_eq!(arr[(5, 1)], 0);
+    /// assert_eq!(arr[(6, 2)], 0);
+    /// ```
+    pub fn default(width: usize, height: usize) -> Array2D<T> {
+        let size = size(width, height);
+        let mut data = Vec::with_capacity(size);
+        data.resize_with(size, Default::default);
         Array2D {
             data,
             width,
@@ -102,7 +126,7 @@ where
 impl<T> Array2D<T> {
     /// Constructs a new `Array2D<T>` with the given dimensions, computing all initial values from the closure `f`.
     ///
-    /// If `T` implements the [`Default`] trait, [`Default::default`] can be passed in.
+    /// If `T` implements the [`Default`] trait, `Default::default` can be passed in.
     ///
     /// # Examples
     ///
@@ -111,19 +135,19 @@ impl<T> Array2D<T> {
     ///
     /// let arr: Array2D<u8> = Array2D::from_simple_fn(8, 10, || 2);
     ///
-    /// assert_eq!(arr[[5, 3]], 2);
-    /// assert_eq!(arr[[1, 8]], 2);
+    /// assert_eq!(arr[(5, 3)], 2);
+    /// assert_eq!(arr[(1, 8)], 2);
     ///
     /// let arr: Array2D<u8> = Array2D::from_simple_fn(8, 10, Default::default);
     ///
-    /// assert_eq!(arr[[0, 3]], 0);
-    /// assert_eq!(arr[[6, 4]], 0);
+    /// assert_eq!(arr[(0, 3)], 0);
+    /// assert_eq!(arr[(6, 4)], 0);
     /// ```
     pub fn from_simple_fn<F>(width: usize, height: usize, f: F) -> Array2D<T>
     where
         F: FnMut() -> T,
     {
-        let size = width.checked_mul(height).expect("dimensions too large");
+        let size = size(width, height);
         let mut data = Vec::with_capacity(size);
         data.resize_with(size, f);
         Array2D {
@@ -141,8 +165,8 @@ impl<T> Array2D<T> {
     ///
     /// let arr: Array2D<usize> = Array2D::from_fn(8, 10, |(x, y)| x + y);
     ///
-    /// assert_eq!(arr[[5, 3]], 8);
-    /// assert_eq!(arr[[7, 9]], 16);
+    /// assert_eq!(arr[(5, 3)], 8);
+    /// assert_eq!(arr[(7, 9)], 16);
     /// ```
     pub fn from_fn<F>(width: usize, height: usize, mut f: F) -> Array2D<T>
     where
@@ -191,9 +215,7 @@ impl<T> Array2D<T> {
         self.height
     }
 
-    /// Gets a reference to the value at the given position of the array.
-    /// If the position is within the dimensions of the array, returns `Some(&T)`.
-    /// Otherwise, returns `None`.
+    /// Returns a reference to the value at the given position of the array, or `None` if out of bounds.
     ///
     /// # Examples
     ///
@@ -202,23 +224,19 @@ impl<T> Array2D<T> {
     ///
     /// let mut arr: Array2D<u8> = Array2D::new(8, 10, 3);
     ///
-    /// arr[[1, 1]] = 4;
+    /// arr[(1, 1)] = 4;
     ///
     /// assert_eq!(arr.get((5, 2)), Some(&3));
     /// assert_eq!(arr.get((1, 1)), Some(&4));
     /// assert_eq!(arr.get((8, 6)), None);
     /// assert_eq!(arr.get((4, 10)), None);
     /// ```
-    pub fn get(&self, pos: (usize, usize)) -> Option<&T> {
-        if pos.0 >= self.width || pos.1 >= self.height {
-            return None;
-        }
-        Some(&self.data[pos.0 + pos.1 * self.width])
+    pub fn get<C: TryInto<usize>>(&self, pos: (C, C)) -> Option<&T> {
+        let (x, y) = self.get_pos(pos)?;
+        Some(&self.data[x + y * self.width])
     }
 
-    /// Gets a mutable reference to the value at the given position of the array.
-    /// If the position is within the dimensions of the array, returns `Some(&mut T)`.
-    /// Otherwise, returns `None`.
+    /// Returns a mutable reference to the value at the given position of the array, or `None` if out of bounds.
     ///
     /// # Examples
     ///
@@ -227,22 +245,21 @@ impl<T> Array2D<T> {
     ///
     /// let mut arr: Array2D<u8> = Array2D::new(8, 10, 4);
     ///
-    /// arr[[5, 3]] = 2;
+    /// arr[(5, 3)] = 2;
     ///
     /// assert_eq!(arr.get_mut((5, 3)), Some(&mut 2));
     /// assert_eq!(arr.get_mut((0, 0)), Some(&mut 4));
     /// assert_eq!(arr.get_mut((1, 10)), None);
     /// assert_eq!(arr.get_mut((9, 7)), None);
     /// ```
-    pub fn get_mut(&mut self, pos: (usize, usize)) -> Option<&mut T> {
-        if pos.0 >= self.width || pos.1 >= self.height {
-            return None;
-        }
-        Some(&mut self.data[pos.0 + pos.1 * self.width])
+    pub fn get_mut<C: TryInto<usize>>(&mut self, pos: (C, C)) -> Option<&mut T> {
+        let (x, y) = self.get_pos(pos)?;
+        Some(&mut self.data[x + y * self.width])
     }
 
-    /// Sets the value at the given position of the array to `value`.
-    /// Returns `true` on success, or `false` if the position is outside the dimensions of the array.
+    /// Sets the value at the given position of the array.
+    ///
+    /// Returns the old value at that position, or `None` if out of bounds.
     ///
     /// # Examples
     ///
@@ -251,87 +268,64 @@ impl<T> Array2D<T> {
     ///
     /// let mut arr: Array2D<u8> = Array2D::new(8, 10, 5);
     ///
-    /// assert_eq!(arr.set((2, 3), 7), true);
-    /// assert_eq!(arr.set((9, 12), 1), false);
+    /// assert_eq!(arr.set((2, 3), 7), Some(5));
+    /// assert_eq!(arr.set((9, 12), 1), None);
     ///
-    /// assert_eq!(arr[[2, 3]], 7);
+    /// assert_eq!(arr[(2, 3)], 7);
     /// ```
-    pub fn set(&mut self, pos: (usize, usize), value: T) -> bool {
-        if pos.0 >= self.width || pos.1 >= self.height {
-            return false;
-        }
-        self.data[pos.0 + pos.1 * self.width] = value;
-        true
+    pub fn set<C: TryInto<usize>>(&mut self, pos: (C, C), value: T) -> Option<T> {
+        let (x, y) = self.get_pos(pos)?;
+        Some(std::mem::replace(&mut self.data[x + y * self.width], value))
     }
 
-    /// Offsets the given position, returning the result.
-    ///
-    /// If the resulting position is inside the dimensions of the array, returns `Some((usize, usize))`.
-    /// Otherwise, returns `None`.
+    /// Returns `true` if the given position is within the bounds of the array, or `false` if not.
     ///
     /// # Examples
     ///
     /// ```
     /// use array2d::Array2D;
     ///
-    /// let mut arr: Array2D<u8> = Array2D::new(8, 10, 7);
+    /// let arr: Array2D<u8> = Array2D::new(15, 14, 11);
     ///
-    /// assert_eq!(arr.offset((4, 3), (-3, 6)), Some((1, 9)));
-    /// assert_eq!(arr.offset((6, 2), (-5, -3)), None);
-    /// assert_eq!(arr.offset((5, 9), (1, 2)), None);
-    ///
-    /// arr[[3, 6]] = 2;
-    ///
-    /// if let Some(adj) = arr.offset((1, 9), (2, -3)) {
-    ///     assert_eq!(arr[adj], 2);
-    /// }
+    /// assert_eq!(arr.in_bounds((0, 0)), true);
+    /// assert_eq!(arr.in_bounds((10, 4)), true);
+    /// assert_eq!(arr.in_bounds((15, 2)), false);
+    /// assert_eq!(arr.in_bounds((3, 17)), false);
+    /// assert_eq!(arr.in_bounds((-1, 5)), false);
     /// ```
-    pub fn offset(&self, pos: (usize, usize), offset: (isize, isize)) -> Option<(usize, usize)> {
-        Some((
-            offset_value(pos.0, offset.0, self.width)?,
-            offset_value(pos.1, offset.1, self.height)?,
-        ))
+    pub fn in_bounds<C: TryInto<usize>>(&self, pos: (C, C)) -> bool {
+        self.get_pos(pos).is_some()
+    }
+
+    fn get_pos<C: TryInto<usize>>(&self, pos: (C, C)) -> Option<(usize, usize)> {
+        let (x, y): (usize, usize) = (pos.0.try_into().ok()?, pos.1.try_into().ok()?);
+        if x >= self.width || y >= self.height {
+            return None;
+        }
+        Some((x, y))
     }
 }
 
-impl<T> Index<[usize; 2]> for Array2D<T> {
+impl<T, C: TryInto<usize>> Index<(C, C)> for Array2D<T> {
     type Output = T;
 
-    fn index(&self, index: [usize; 2]) -> &Self::Output {
-        self.get((index[0], index[1])).expect("index out of bounds")
+    fn index(&self, index: (C, C)) -> &Self::Output {
+        self.get(index).expect("position out of bounds")
     }
 }
 
-impl<T> IndexMut<[usize; 2]> for Array2D<T> {
-    fn index_mut(&mut self, index: [usize; 2]) -> &mut Self::Output {
-        self.get_mut((index[0], index[1]))
-            .expect("index out of bounds")
+impl<T, C: TryInto<usize>> IndexMut<(C, C)> for Array2D<T> {
+    fn index_mut(&mut self, index: (C, C)) -> &mut Self::Output {
+        self.get_mut(index).expect("position out of bounds")
     }
 }
 
-impl<T> Index<(usize, usize)> for Array2D<T> {
-    type Output = T;
-
-    fn index(&self, index: (usize, usize)) -> &Self::Output {
-        self.get(index).expect("index out of bounds")
-    }
-}
-
-impl<T> IndexMut<(usize, usize)> for Array2D<T> {
-    fn index_mut(&mut self, index: (usize, usize)) -> &mut Self::Output {
-        self.get_mut(index).expect("index out of bounds")
-    }
-}
-
-impl<T> Debug for Array2D<T>
-where
-    T: Display,
-{
+impl<T: fmt::Display> fmt::Debug for Array2D<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         let mut longest = 0;
         for y in 0..self.height {
             for x in 0..self.width {
-                longest = longest.max(self[[x, y]].to_string().len());
+                longest = longest.max(self[(x, y)].to_string().len());
             }
         }
 
@@ -339,7 +333,7 @@ where
 
         for y in 0..self.height {
             for x in 0..self.width {
-                let str = self[[x, y]].to_string();
+                let str = self[(x, y)].to_string();
                 write!(f, "{}{}", " ".repeat(longest - str.len()), str)?;
                 if x != self.width - 1 {
                     write!(f, ",")?;
@@ -354,18 +348,6 @@ where
     }
 }
 
-fn offset_value(value: usize, offset: isize, limit: usize) -> Option<usize> {
-    let new = if offset < 0 {
-        let abs = offset.abs() as usize;
-        if abs > value {
-            return None;
-        }
-        value - abs
-    } else {
-        value.checked_add(offset as usize)?
-    };
-    if new >= limit {
-        return None;
-    }
-    Some(new)
+fn size(width: usize, height: usize) -> usize {
+    width.checked_mul(height).expect("dimensions too large")
 }

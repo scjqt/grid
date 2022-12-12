@@ -15,7 +15,7 @@ impl<T> Array2D<T> {
     /// use array2d::Array2D;
     ///
     /// let mut arr: Array2D<u8> = Array2D::new(5, 5, 2);
-    /// arr[[1, 0]] = 3;
+    /// arr[(1, 0)] = 3;
     ///
     /// let mut iter = arr.iter();
     ///
@@ -42,7 +42,7 @@ impl<T> Array2D<T> {
     /// use array2d::Array2D;
     ///
     /// let mut arr: Array2D<u8> = Array2D::new(8, 10, 0);
-    /// arr[[1, 0]] = 2;
+    /// arr[(1, 0)] = 2;
     ///
     /// let mut iter = arr.iter_mut();
     ///
@@ -53,8 +53,8 @@ impl<T> Array2D<T> {
     ///     *value += 1;
     /// }
     ///
-    /// assert_eq!(arr[[1, 0]], 3);
-    /// assert_eq!(arr[[3, 5]], 1);
+    /// assert_eq!(arr[(1, 0)], 3);
+    /// assert_eq!(arr[(3, 5)], 1);
     /// ```
     pub fn iter_mut(&mut self) -> IterMut<T> {
         self.data.iter_mut()
@@ -107,7 +107,7 @@ impl<T> Array2D<T> {
     /// let arr: Array2D<usize> = Array2D::from_fn(8, 10, |(x, y)| x * 2 + y);
     ///
     /// for ((x, y), value) in arr.iter_positions() {
-    ///     assert_eq!(arr[[x, y]], *value);
+    ///     assert_eq!(arr[(x, y)], *value);
     ///     assert_eq!(value, &(x * 2 + y));
     /// }
     /// ```
@@ -131,8 +131,8 @@ impl<T> Array2D<T> {
     ///     *value = x * y;
     /// }
     ///
-    /// assert_eq!(arr[[2, 3]], 6);
-    /// assert_eq!(arr[[7, 9]], 63);
+    /// assert_eq!(arr[(2, 3)], 6);
+    /// assert_eq!(arr[(7, 9)], 63);
     /// ```
     pub fn iter_mut_positions(&mut self) -> PositionIterMut<T> {
         PositionIterMut::new(self.positions().zip(self.iter_mut()))
@@ -172,7 +172,7 @@ impl<T> IntoIterator for Array2D<T> {
     /// use array2d::Array2D;
     ///
     /// let mut arr: Array2D<u8> = Array2D::new(5, 5, 7);
-    /// arr[[1, 0]] = 5;
+    /// arr[(1, 0)] = 5;
     ///
     /// let mut iter = arr.clone().into_iter();
     ///
@@ -253,7 +253,7 @@ impl Iterator for Positions {
 /// let arr: Array2D<usize> = Array2D::from_fn(8, 10, |(x, y)| x * 2 + y);
 ///
 /// for ((x, y), value) in arr.iter_positions() {
-///     assert_eq!(arr[[x, y]], *value);
+///     assert_eq!(arr[(x, y)], *value);
 ///     assert_eq!(value, &(x * 2 + y));
 /// }
 /// ```
@@ -291,8 +291,8 @@ impl<'a, T> Iterator for PositionIter<'a, T> {
 ///     *value = x * y;
 /// }
 ///
-/// assert_eq!(arr[[2, 3]], 6);
-/// assert_eq!(arr[[7, 9]], 63);
+/// assert_eq!(arr[(2, 3)], 6);
+/// assert_eq!(arr[(7, 9)], 63);
 /// ```
 pub struct PositionIterMut<'a, T> {
     iter: Zip<Positions, IterMut<'a, T>>,

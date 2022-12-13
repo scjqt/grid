@@ -70,6 +70,18 @@ impl Vector {
     pub fn perp_dot(self, rhs: Self) -> i64 {
         (self.x * rhs.y) - (self.y * rhs.x)
     }
+
+    /// Computes `self` with a `y` value of `0`.
+    #[inline]
+    pub fn horizontal(self) -> Self {
+        Self::new(self.x, 0)
+    }
+
+    /// Computes `self` with an `x` value of `0`.
+    #[inline]
+    pub fn vertical(self) -> Self {
+        Self::new(0, self.y)
+    }
 }
 
 impl fmt::Display for Vector {

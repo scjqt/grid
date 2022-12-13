@@ -44,6 +44,8 @@ impl<T: Clone> Grid<T> {
     ///
     /// Requires that `T` implements the [`Clone`] trait.
     ///
+    /// Panics if the dimensions are not positive or too large.
+    ///
     /// # Examples
     ///
     /// ```
@@ -70,6 +72,8 @@ impl<T: Default> Grid<T> {
     ///
     /// Requires that `T` implements the [`Default`] trait.
     ///
+    /// Panics if the dimensions are not positive or too large.
+    ///
     /// # Examples
     ///
     /// ```
@@ -94,6 +98,8 @@ impl<T: Default> Grid<T> {
 impl<T> Grid<T> {
     /// Constructs a new `Grid<T>` with the given dimensions, computing all initial values from the closure `f`.
     ///
+    /// Panics if the dimensions are not positive or too large.
+    ///
     /// # Examples
     ///
     /// ```
@@ -116,7 +122,10 @@ impl<T> Grid<T> {
             dim: Vector::new(width, height),
         }
     }
+
     /// Constructs a new `Grid<T>` with the given dimensions, computing all initial values from the closure `f` which maps each position to a value.
+    ///
+    /// Panics if the dimensions are not positive or too large.
     ///
     /// # Examples
     ///
@@ -137,6 +146,39 @@ impl<T> Grid<T> {
             for x in 0..width {
                 data.push(f(Vector::new(x, y)));
             }
+        }
+        Self {
+            data,
+            dim: Vector::new(width, height),
+        }
+    }
+
+    /// Constructs a new `Grid<T>` with the given dimensions and values computed by an iterator in row-major order.
+    ///
+    /// Panics if the dimensions are not positive or too large.
+    ///
+    /// Panics if the iterator runs out before the grid is filled.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use grid::{Grid, vct};
+    ///
+    /// let grid: Grid<u8> = Grid::from_iter(2, 3, [1, 2, 3, 4, 5, 6]);
+    ///
+    /// assert_eq!(grid[vct!(1, 0)], 2);
+    /// assert_eq!(grid[vct!(0, 2)], 5);
+    /// assert_eq!(grid[vct!(1, 2)], 6);
+    /// ```
+    pub fn from_iter<I>(width: i64, height: i64, values: I) -> Self
+    where
+        I: IntoIterator<Item = T>,
+    {
+        let size = size(width, height);
+        let mut data = Vec::with_capacity(size);
+        let mut values = values.into_iter();
+        for _ in 0..size {
+            data.push(values.next().expect("iterator too short"));
         }
         Self {
             data,
@@ -314,7 +356,36 @@ impl<T> Grid<T> {
         }
     }
 
-    /// Maps the values of an existing grid to create a new grid with the same dimensions.
+    /// Creates a new grid with the same dimensions and values computed from the closure `f`.
+    ///
+    /// The closure `f` does not take any arguments.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use grid::{Grid, vct};
+    ///
+    /// let grid_a: Grid<u8> = Grid::new(15, 14, 11);
+    ///
+    /// let grid_b = grid_a.simple_map(|| 5);
+    ///
+    /// assert_eq!(grid_b[vct!(1, 12)], 5);
+    /// ```
+    pub fn simple_map<F, U>(&self, mut f: F) -> Grid<U>
+    where
+        F: FnMut() -> U,
+    {
+        let mut data = Vec::with_capacity(self.data.capacity());
+        for _ in 0..data.capacity() {
+            data.push(f());
+        }
+        Grid {
+            data,
+            dim: self.dim,
+        }
+    }
+
+    /// Maps the values and positions of an existing grid to create a new grid with the same dimensions.
     ///
     /// The closure `f` takes a position in the grid and a reference to the value at that position.
     ///
@@ -341,6 +412,67 @@ impl<T> Grid<T> {
         let mut data = Vec::with_capacity(self.data.capacity());
         for (pos, value) in self.iter_positions() {
             data.push(f(pos, value));
+        }
+        Grid {
+            data,
+            dim: self.dim,
+        }
+    }
+
+    /// Maps the positions of an existing grid to create a new grid with the same dimensions.
+    ///
+    /// The closure `f` takes a position in the grid.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use grid::{Grid, vct};
+    ///
+    /// let grid_a: Grid<u8> = Grid::new(7, 2, 6);
+    ///
+    /// let grid_b = grid_a.simple_pos_map(|pos| pos.x + pos.y);
+    ///
+    /// assert_eq!(grid_b[vct!(3, 0)], 3);
+    /// assert_eq!(grid_b[vct!(5, 1)], 6);
+    /// ```
+    pub fn simple_pos_map<F, U>(&self, mut f: F) -> Grid<U>
+    where
+        F: FnMut(Vector) -> U,
+    {
+        let mut data = Vec::with_capacity(self.data.capacity());
+        for pos in self.positions() {
+            data.push(f(pos));
+        }
+        Grid {
+            data,
+            dim: self.dim,
+        }
+    }
+
+    /// Creates a new grid with the same dimensions and values computed by an iterator in row-major order.
+    ///
+    /// Panics if the iterator runs out before the grid is filled.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use grid::{Grid, vct};
+    ///
+    /// let grid_a: Grid<u8> = Grid::new(4, 2, 17);
+    ///
+    /// let grid_b = grid_a.iter_map([1, 2, 3, 4, 5, 4, 3, 2]);
+    ///
+    /// assert_eq!(grid_b[vct!(2, 0)], 3);
+    /// assert_eq!(grid_b[vct!(0, 1)], 5);
+    /// ```
+    pub fn iter_map<I, U>(&self, values: I) -> Grid<U>
+    where
+        I: IntoIterator<Item = U>,
+    {
+        let mut data = Vec::with_capacity(self.data.capacity());
+        let mut values = values.into_iter();
+        for _ in 0..data.capacity() {
+            data.push(values.next().expect("iterator too short"));
         }
         Grid {
             data,

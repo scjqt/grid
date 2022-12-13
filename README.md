@@ -1,1 +1,1 @@
-A simple generic heap-allocated 2D array library.
+A simple generic heap-allocated 2D grid library.

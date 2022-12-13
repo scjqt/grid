@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "array2d"
+name = "grid"
 version = "0.2.0"

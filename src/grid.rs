@@ -325,8 +325,6 @@ impl<T> Grid<T> {
 
     /// Maps the values of an existing grid to create a new grid with the same dimensions.
     ///
-    /// The closure `f` takes a reference to a value.
-    ///
     /// # Examples
     ///
     /// ```
@@ -346,7 +344,7 @@ impl<T> Grid<T> {
     where
         F: FnMut(&T) -> U,
     {
-        let mut data = Vec::with_capacity(self.data.capacity());
+        let mut data = Vec::with_capacity(self.data.len());
         for value in self {
             data.push(f(value));
         }
@@ -357,8 +355,6 @@ impl<T> Grid<T> {
     }
 
     /// Maps the values and positions of an existing grid to create a new grid with the same dimensions.
-    ///
-    /// The closure `f` takes a position in the grid and a reference to the value at that position.
     ///
     /// # Examples
     ///
@@ -380,7 +376,7 @@ impl<T> Grid<T> {
     where
         F: FnMut(Vector, &T) -> U,
     {
-        let mut data = Vec::with_capacity(self.data.capacity());
+        let mut data = Vec::with_capacity(self.data.len());
         for (pos, value) in self.iter_positions() {
             data.push(f(pos, value));
         }
@@ -389,19 +385,80 @@ impl<T> Grid<T> {
             dim: self.dim,
         }
     }
+
+    /// Maps the values of an existing grid to create a new grid with the same dimensions.
+    ///
+    /// Consumes `self`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use grid::{Grid, vct};
+    ///
+    /// let grid_a: Grid<u8> = Grid::new(15, 14, 11);
+    ///
+    /// let grid_b = grid_a.map_into(|value| value + 2);
+    ///
+    /// assert_eq!(grid_b[vct!(2, 3)], 13);
+    /// ```
+    pub fn map_into<F, U>(self, mut f: F) -> Grid<U>
+    where
+        F: FnMut(T) -> U,
+    {
+        let mut data = Vec::with_capacity(self.data.len());
+        let dim = self.dim;
+        for value in self {
+            data.push(f(value));
+        }
+        Grid { data, dim }
+    }
+
+    /// Maps the values and positions of an existing grid to create a new grid with the same dimensions.
+    ///
+    /// Consumes `self`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use grid::{Grid, vct};
+    ///
+    /// let grid_a: Grid<i64> = Grid::new(5, 6, 3);
+    ///
+    /// let grid_b = grid_a.pos_map_into(|pos, value| value + pos.x);
+    ///
+    /// assert_eq!(grid_b[vct!(1, 4)], 4);
+    /// assert_eq!(grid_b[vct!(3, 0)], 6);
+    /// ```
+    pub fn pos_map_into<F, U>(self, mut f: F) -> Grid<U>
+    where
+        F: FnMut(Vector, T) -> U,
+    {
+        let mut data = Vec::with_capacity(self.data.len());
+        let dim = self.dim;
+        for (pos, value) in self.into_iter_positions() {
+            data.push(f(pos, value));
+        }
+        Grid { data, dim }
+    }
 }
 
 impl<T> Index<Vector> for Grid<T> {
     type Output = T;
 
-    fn index(&self, index: Vector) -> &Self::Output {
-        self.get(index).expect("position out of bounds")
+    fn index(&self, pos: Vector) -> &Self::Output {
+        let dim = self.dim;
+        self.get(pos).unwrap_or_else(|| {
+            panic!("position out of bounds: the dimensions are {dim} but the position is {pos}")
+        })
     }
 }
 
 impl<T> IndexMut<Vector> for Grid<T> {
-    fn index_mut(&mut self, index: Vector) -> &mut Self::Output {
-        self.get_mut(index).expect("position out of bounds")
+    fn index_mut(&mut self, pos: Vector) -> &mut Self::Output {
+        let dim = self.dim;
+        self.get_mut(pos).unwrap_or_else(|| {
+            panic!("position out of bounds: the dimensions are {dim} but the position is {pos}")
+        })
     }
 }
 
@@ -431,9 +488,9 @@ impl<T: fmt::Display> fmt::Debug for Grid<T> {
 
 fn size(width: i64, height: i64) -> usize {
     if width <= 0 || height <= 0 {
-        panic!("dimensions must be positive");
+        panic!("dimensions must be positive: ({width}, {height})");
     }
     (width as usize)
         .checked_mul(height as usize)
-        .expect("dimensions too large")
+        .unwrap_or_else(|| panic!("dimensions are too large: ({width}, {height})"))
 }

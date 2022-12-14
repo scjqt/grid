@@ -35,7 +35,7 @@ impl Vector {
         Self { x, y }
     }
 
-    /// Computes the absolute value of the `x` and `y` coordinates of `self`
+    /// Returns a vector containing the absolute values of each coordinate of `self`.
     #[inline]
     pub fn abs(self) -> Self {
         Self::new(self.x.abs(), self.y.abs())
@@ -47,10 +47,30 @@ impl Vector {
         diff.x.abs() + diff.y.abs()
     }
 
-    /// Computes a vector with coordinates representing the sign of the coordinates of `self`.
+    /// Returns a vector containing the signs of each coordinate of `self`.
     #[inline]
     pub fn signum(self) -> Self {
         Self::new(self.x.signum(), self.y.signum())
+    }
+
+    /// Returns a vector containing the minimum values of each coordinate of `self` and `rhs`.
+    #[inline]
+    pub fn min(self, rhs: Self) -> Self {
+        Self::new(self.x.min(rhs.x), self.y.min(rhs.y))
+    }
+
+    /// Returns a vector containing the maximum values of each coordinate of `self` and `rhs`.
+    #[inline]
+    pub fn max(self, rhs: Self) -> Self {
+        Self::new(self.x.max(rhs.x), self.y.max(rhs.y))
+    }
+
+    /// Returns a vector that is `self` clamped between `min` and `max`.
+    ///
+    /// Panics if `min.x > max.x` or `min.y > max.y`.
+    #[inline]
+    pub fn clamp(self, min: Self, max: Self) -> Self {
+        Self::new(self.x.clamp(min.x, max.x), self.y.clamp(min.y, max.y))
     }
 
     /// Computes the dot product of `self` and `rhs`.
@@ -59,7 +79,7 @@ impl Vector {
         (self.x * rhs.x) + (self.y * rhs.y)
     }
 
-    /// Computes `self` after a quarter turn.
+    /// Returns a vector that is equal to `self` rotated by 90 degrees: (x, y) -> (-y, x)
     #[inline]
     pub fn perp(self) -> Self {
         Self::new(-self.y, self.x)
@@ -71,13 +91,13 @@ impl Vector {
         (self.x * rhs.y) - (self.y * rhs.x)
     }
 
-    /// Computes `self` with a `y` value of `0`.
+    /// Returns a vector equal to `self` with a `y` value of `0`.
     #[inline]
     pub fn horizontal(self) -> Self {
         Self::new(self.x, 0)
     }
 
-    /// Computes `self` with an `x` value of `0`.
+    /// Returns a vector equal to `self` with an `x` value of `0`.
     #[inline]
     pub fn vertical(self) -> Self {
         Self::new(0, self.y)

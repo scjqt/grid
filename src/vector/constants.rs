@@ -15,9 +15,9 @@ pub const SW: Vector = Vector::new(-1, 1);
 pub const SE: Vector = Vector::new(1, 1);
 
 pub const CARDINAL: [Vector; 4] = [EAST, NORTH, WEST, SOUTH];
-pub const DIAGONAL: [Vector; 4] = [NE, NW, SW, SE];
+pub const ORDINAL: [Vector; 4] = [NE, NW, SW, SE];
 pub const ADJACENT: [Vector; 8] = [EAST, NE, NORTH, NW, WEST, SW, SOUTH, SE];
 
 pub const CARDINAL_ZERO: [Vector; 5] = [ZERO, EAST, NORTH, WEST, SOUTH];
-pub const DIAGONAL_ZERO: [Vector; 5] = [ZERO, NE, NW, SW, SE];
+pub const ORDINAL_ZERO: [Vector; 5] = [ZERO, NE, NW, SW, SE];
 pub const ADJACENT_ZERO: [Vector; 9] = [ZERO, EAST, NE, NORTH, NW, WEST, SW, SOUTH, SE];

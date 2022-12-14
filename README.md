@@ -9,16 +9,16 @@ There are `width` columns and `height` rows in the grid, and the grid's iterator
 # Examples
 
 ```
-use grid::{Grid, vct};
+use grid::{Grid, v};
 
 let mut grid: Grid<u8> = Grid::new(8, 10, 0);
 
-grid[vct!(1, 0)] = 1;
-grid[vct!(3, 5)] = 2;
+grid[v!(1, 0)] = 1;
+grid[v!(3, 5)] = 2;
 
-assert_eq!(grid[vct!(3, 5)], 2);
-assert_eq!(grid[vct!(1, 0)], 1);
-assert_eq!(grid[vct!(6, 4)], 0);
+assert_eq!(grid[v!(3, 5)], 2);
+assert_eq!(grid[v!(1, 0)], 1);
+assert_eq!(grid[v!(6, 4)], 0);
 
 println!("{:?}", grid);
 ```

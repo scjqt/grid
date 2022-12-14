@@ -115,20 +115,20 @@ impl fmt::Display for Vector {
 /// # Examples
 ///
 /// ```
-/// use grid::{Vector, vct};
+/// use grid::{Vector, v};
 ///
-/// let v = vct!(5, 3);
+/// let v = v!(5, 3);
 ///
 /// assert_eq!(v, Vector::new(5, 3));
 /// ```
 #[macro_export]
-macro_rules! vct {
+macro_rules! v {
     ($x:expr, $y:expr) => {
         grid::Vector::new($x, $y)
     };
 }
 
-pub use vct;
+pub use v;
 
 impl Add for Vector {
     type Output = Self;

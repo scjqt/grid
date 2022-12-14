@@ -12,10 +12,10 @@ impl<T> Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::{Grid, vct};
+    /// use grid::{Grid, v};
     ///
     /// let mut grid: Grid<u8> = Grid::new(5, 5, 2);
-    /// grid[vct!(1, 0)] = 3;
+    /// grid[v!(1, 0)] = 3;
     ///
     /// let mut iter = grid.iter();
     ///
@@ -39,10 +39,10 @@ impl<T> Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::{Grid, vct};
+    /// use grid::{Grid, v};
     ///
     /// let mut grid: Grid<u8> = Grid::new(8, 10, 0);
-    /// grid[vct!(1, 0)] = 2;
+    /// grid[v!(1, 0)] = 2;
     ///
     /// let mut iter = grid.iter_mut();
     ///
@@ -53,8 +53,8 @@ impl<T> Grid<T> {
     ///     *value += 1;
     /// }
     ///
-    /// assert_eq!(grid[vct!(1, 0)], 3);
-    /// assert_eq!(grid[vct!(3, 5)], 1);
+    /// assert_eq!(grid[v!(1, 0)], 3);
+    /// assert_eq!(grid[v!(3, 5)], 1);
     /// ```
     pub fn iter_mut(&mut self) -> IterMut<T> {
         self.data.iter_mut()
@@ -65,18 +65,18 @@ impl<T> Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::{Grid, vct};
+    /// use grid::{Grid, v};
     ///
     /// let mut grid: Grid<u8> = Grid::new(3, 2, 0);
     ///
     /// let mut pos = grid.positions();
     ///
-    /// assert_eq!(pos.next(), Some(vct!(0, 0)));
-    /// assert_eq!(pos.next(), Some(vct!(1, 0)));
-    /// assert_eq!(pos.next(), Some(vct!(2, 0)));
-    /// assert_eq!(pos.next(), Some(vct!(0, 1)));
-    /// assert_eq!(pos.next(), Some(vct!(1, 1)));
-    /// assert_eq!(pos.next(), Some(vct!(2, 1)));
+    /// assert_eq!(pos.next(), Some(v!(0, 0)));
+    /// assert_eq!(pos.next(), Some(v!(1, 0)));
+    /// assert_eq!(pos.next(), Some(v!(2, 0)));
+    /// assert_eq!(pos.next(), Some(v!(0, 1)));
+    /// assert_eq!(pos.next(), Some(v!(1, 1)));
+    /// assert_eq!(pos.next(), Some(v!(2, 1)));
     /// assert_eq!(pos.next(), None);
     ///
     /// let mut pos = grid.positions();
@@ -121,7 +121,7 @@ impl<T> Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::{Grid, vct};
+    /// use grid::{Grid, v};
     ///
     /// let mut grid: Grid<i64> = Grid::new(8, 10, 3);
     ///
@@ -129,8 +129,8 @@ impl<T> Grid<T> {
     ///     *value = pos.x * pos.y;
     /// }
     ///
-    /// assert_eq!(grid[vct!(2, 3)], 6);
-    /// assert_eq!(grid[vct!(7, 9)], 63);
+    /// assert_eq!(grid[v!(2, 3)], 6);
+    /// assert_eq!(grid[v!(7, 9)], 63);
     /// ```
     pub fn iter_mut_positions(&mut self) -> PositionIterMut<T> {
         PositionIterMut::new(self.positions().zip(self.iter_mut()))
@@ -167,10 +167,10 @@ impl<T> IntoIterator for Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::{Grid, vct};
+    /// use grid::{Grid, v};
     ///
     /// let mut grid: Grid<u8> = Grid::new(5, 5, 7);
-    /// grid[vct!(1, 0)] = 5;
+    /// grid[v!(1, 0)] = 5;
     ///
     /// let mut iter = grid.clone().into_iter();
     ///
@@ -198,10 +198,10 @@ impl<'a, T> IntoIterator for &'a Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::{Grid, vct};
+    /// use grid::{Grid, v};
     ///
     /// let mut grid: Grid<u8> = Grid::new(5, 5, 2);
-    /// grid[vct!(1, 0)] = 3;
+    /// grid[v!(1, 0)] = 3;
     ///
     /// let mut sum = 0;
     /// for value in &grid {
@@ -224,17 +224,17 @@ impl<'a, T> IntoIterator for &'a mut Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::{Grid, vct};
+    /// use grid::{Grid, v};
     ///
     /// let mut grid: Grid<u8> = Grid::new(8, 10, 0);
-    /// grid[vct!(1, 0)] = 2;
+    /// grid[v!(1, 0)] = 2;
     ///
     /// for value in &mut grid {
     ///     *value += 1;
     /// }
     ///
-    /// assert_eq!(grid[vct!(1, 0)], 3);
-    /// assert_eq!(grid[vct!(3, 5)], 1);
+    /// assert_eq!(grid[v!(1, 0)], 3);
+    /// assert_eq!(grid[v!(3, 5)], 1);
     /// ```
     fn into_iter(self) -> Self::IntoIter {
         self.iter_mut()
@@ -246,18 +246,18 @@ impl<'a, T> IntoIterator for &'a mut Grid<T> {
 /// # Examples
 ///
 /// ```
-/// use grid::{Grid, vct};
+/// use grid::{Grid, v};
 ///
 /// let mut grid: Grid<u8> = Grid::new(3, 2, 0);
 ///
 /// let mut pos = grid.positions();
 ///
-/// assert_eq!(pos.next(), Some(vct!(0, 0)));
-/// assert_eq!(pos.next(), Some(vct!(1, 0)));
-/// assert_eq!(pos.next(), Some(vct!(2, 0)));
-/// assert_eq!(pos.next(), Some(vct!(0, 1)));
-/// assert_eq!(pos.next(), Some(vct!(1, 1)));
-/// assert_eq!(pos.next(), Some(vct!(2, 1)));
+/// assert_eq!(pos.next(), Some(v!(0, 0)));
+/// assert_eq!(pos.next(), Some(v!(1, 0)));
+/// assert_eq!(pos.next(), Some(v!(2, 0)));
+/// assert_eq!(pos.next(), Some(v!(0, 1)));
+/// assert_eq!(pos.next(), Some(v!(1, 1)));
+/// assert_eq!(pos.next(), Some(v!(2, 1)));
 /// assert_eq!(pos.next(), None);
 ///
 /// let mut pos = grid.positions();
@@ -331,7 +331,7 @@ impl<'a, T> Iterator for PositionIter<'a, T> {
 /// # Examples
 ///
 /// ```
-/// use grid::{Grid, vct};
+/// use grid::{Grid, v};
 ///
 /// let mut grid: Grid<i64> = Grid::new(8, 10, 3);
 ///
@@ -339,8 +339,8 @@ impl<'a, T> Iterator for PositionIter<'a, T> {
 ///     *value = pos.x * pos.y;
 /// }
 ///
-/// assert_eq!(grid[vct!(2, 3)], 6);
-/// assert_eq!(grid[vct!(7, 9)], 63);
+/// assert_eq!(grid[v!(2, 3)], 6);
+/// assert_eq!(grid[v!(7, 9)], 63);
 /// ```
 pub struct PositionIterMut<'a, T> {
     iter: Zip<Positions, IterMut<'a, T>>,

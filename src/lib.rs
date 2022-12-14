@@ -9,39 +9,38 @@
 //! # Examples
 //!
 //! ```
-//! use grid::{Grid, v};
+//! use grid::prelude::*;
 //!
-//! let mut grid: Grid<u8> = Grid::new(8, 10, 0);
+//! let mut grid: Grid<u8> = Grid::new(5, 6, 3);
+//!
+//! assert_eq!(grid.width(), 5);
+//! assert_eq!(grid.height(), 6);
 //!
 //! grid[v!(1, 0)] = 1;
 //! grid[v!(3, 5)] = 2;
 //!
 //! assert_eq!(grid[v!(3, 5)], 2);
 //! assert_eq!(grid[v!(1, 0)], 1);
-//! assert_eq!(grid[v!(6, 4)], 0);
+//! assert_eq!(grid[v!(2, 4)], 3);
 //!
 //! println!("{:?}", grid);
-//! ```
 //!
-//! ```
-//! use grid::Vector;
+//! let mut pos = Vector::new(1, 2);
+//! let mut offset = EAST;
 //!
-//! let mut v = Vector::new(1, 2);
-//!
-//! while v.x < 5 {
-//!     v += Vector::new(1, 3);
+//! while grid.in_bounds(pos) {
+//!     pos += offset;
 //! }
 //!
-//! v *= 2;
-//!
-//! assert_eq!(v, Vector::new(10, 28));
+//! assert_eq!(pos, v!(5, 2));
 //! ```
 
-mod grid;
-mod vector;
+pub mod grid;
+pub mod vector;
 
-pub use crate::grid::iterators;
-pub use vector::constants;
-
-pub use crate::grid::Grid;
-pub use vector::Vector;
+pub mod prelude {
+    pub use crate::grid::Grid;
+    pub use crate::vector::constants::*;
+    pub use crate::vector::v;
+    pub use crate::vector::Vector;
+}

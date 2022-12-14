@@ -1,4 +1,12 @@
+//! A 2D vector struct with `i64` components.
+
 pub mod constants;
+
+pub mod prelude {
+    pub use crate::vector::constants::*;
+    pub use crate::vector::v;
+    pub use crate::vector::Vector;
+}
 
 use std::{
     fmt,
@@ -10,7 +18,7 @@ use std::{
 /// # Examples
 ///
 /// ```
-/// use grid::Vector;
+/// use grid::vector::prelude::*;
 ///
 /// let mut v = Vector::new(1, 2);
 ///
@@ -115,7 +123,7 @@ impl fmt::Display for Vector {
 /// # Examples
 ///
 /// ```
-/// use grid::{Vector, v};
+/// use grid::vector::prelude::*;
 ///
 /// let v = v!(5, 3);
 ///
@@ -124,7 +132,7 @@ impl fmt::Display for Vector {
 #[macro_export]
 macro_rules! v {
     ($x:expr, $y:expr) => {
-        grid::Vector::new($x, $y)
+        grid::vector::Vector::new($x, $y)
     };
 }
 

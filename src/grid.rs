@@ -1,6 +1,14 @@
+//! A simple generic heap-allocated 2D grid struct.
+
 pub mod iterators;
 
-use crate::Vector;
+pub mod prelude {
+    pub use crate::grid::Grid;
+    pub use crate::vector::v;
+    pub use crate::vector::Vector;
+}
+
+use crate::vector::Vector;
 
 use std::{
     fmt,
@@ -20,16 +28,16 @@ use std::{
 /// # Examples
 ///
 /// ```
-/// use grid::{Grid, v};
+/// use grid::grid::prelude::*;
 ///
-/// let mut grid: Grid<u8> = Grid::new(8, 10, 0);
+/// let mut grid: Grid<u8> = Grid::new(8, 10, 3);
 ///
 /// grid[v!(1, 0)] = 1;
 /// grid[v!(3, 5)] = 2;
 ///
 /// assert_eq!(grid[v!(3, 5)], 2);
 /// assert_eq!(grid[v!(1, 0)], 1);
-/// assert_eq!(grid[v!(6, 4)], 0);
+/// assert_eq!(grid[v!(6, 4)], 3);
 ///
 /// println!("{:?}", grid);
 /// ```
@@ -49,7 +57,7 @@ impl<T: Clone> Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::{Grid, v};
+    /// use grid::grid::prelude::*;
     ///
     /// let grid: Grid<u8> = Grid::new(8, 10, 1);
     ///
@@ -77,7 +85,7 @@ impl<T: Default> Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::{Grid, v};
+    /// use grid::grid::prelude::*;
     ///
     /// let grid: Grid<u8> = Grid::default(9, 3);
     ///
@@ -103,7 +111,7 @@ impl<T> Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::{Grid, v};
+    /// use grid::grid::prelude::*;
     ///
     /// let grid: Grid<u8> = Grid::from_simple_fn(8, 10, || 2);
     ///
@@ -130,7 +138,7 @@ impl<T> Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::{Grid, v};
+    /// use grid::grid::prelude::*;
     ///
     /// let grid: Grid<i64> = Grid::from_fn(8, 10, |pos| pos.x + pos.y);
     ///
@@ -162,7 +170,7 @@ impl<T> Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::{Grid, v};
+    /// use grid::grid::prelude::*;
     ///
     /// let grid: Grid<u8> = Grid::from_iter(2, 3, [1, 2, 3, 4, 5, 6]);
     ///
@@ -191,7 +199,7 @@ impl<T> Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::Grid;
+    /// use grid::grid::prelude::*;
     ///
     /// let grid: Grid<u8> = Grid::new(8, 10, 9);
     ///
@@ -207,7 +215,7 @@ impl<T> Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::Grid;
+    /// use grid::grid::prelude::*;
     ///
     /// let grid: Grid<u8> = Grid::new(8, 10, 10);
     ///
@@ -223,7 +231,7 @@ impl<T> Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::{Grid, v};
+    /// use grid::grid::prelude::*;
     ///
     /// let grid: Grid<u8> = Grid::new(8, 10, 11);
     ///
@@ -239,7 +247,7 @@ impl<T> Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::{Grid, v};
+    /// use grid::grid::prelude::*;
     ///
     /// let mut grid: Grid<u8> = Grid::new(8, 10, 3);
     ///
@@ -260,7 +268,7 @@ impl<T> Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::{Grid, v};
+    /// use grid::grid::prelude::*;
     ///
     /// let mut grid: Grid<u8> = Grid::new(8, 10, 4);
     ///
@@ -284,7 +292,7 @@ impl<T> Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::{Grid, v};
+    /// use grid::grid::prelude::*;
     ///
     /// let mut grid: Grid<u8> = Grid::new(8, 10, 5);
     ///
@@ -303,7 +311,7 @@ impl<T> Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::{Grid, v};
+    /// use grid::grid::prelude::*;
     ///
     /// let grid: Grid<u8> = Grid::new(15, 14, 11);
     ///
@@ -328,7 +336,7 @@ impl<T> Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::{Grid, v};
+    /// use grid::grid::prelude::*;
     ///
     /// let grid_a: Grid<u8> = Grid::new(15, 14, 11);
     ///
@@ -359,7 +367,7 @@ impl<T> Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::{Grid, v};
+    /// use grid::grid::prelude::*;
     ///
     /// let grid_a: Grid<i64> = Grid::new(5, 6, 3);
     ///
@@ -393,7 +401,7 @@ impl<T> Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::{Grid, v};
+    /// use grid::grid::prelude::*;
     ///
     /// let grid_a: Grid<u8> = Grid::new(15, 14, 11);
     ///
@@ -420,7 +428,7 @@ impl<T> Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::{Grid, v};
+    /// use grid::grid::prelude::*;
     ///
     /// let grid_a: Grid<i64> = Grid::new(5, 6, 3);
     ///

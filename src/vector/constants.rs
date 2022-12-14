@@ -1,4 +1,6 @@
-use crate::Vector;
+//! Useful `Vector` constants for traversing 2D space.
+
+use crate::vector::Vector;
 
 pub const ZERO: Vector = Vector::new(0, 0);
 

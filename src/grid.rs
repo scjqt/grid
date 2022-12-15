@@ -64,6 +64,7 @@ impl<T: Clone> Grid<T> {
     /// assert_eq!(grid[v!(2, 4)], 1);
     /// assert_eq!(grid[v!(7, 3)], 1);
     /// ```
+    #[track_caller]
     pub fn new(width: i64, height: i64, value: T) -> Self {
         let size = size(width, height);
         let mut data = Vec::with_capacity(size);
@@ -92,6 +93,7 @@ impl<T: Default> Grid<T> {
     /// assert_eq!(grid[v!(5, 1)], 0);
     /// assert_eq!(grid[v!(6, 2)], 0);
     /// ```
+    #[track_caller]
     pub fn default(width: i64, height: i64) -> Self {
         let size = size(width, height);
         let mut data = Vec::with_capacity(size);
@@ -118,6 +120,7 @@ impl<T> Grid<T> {
     /// assert_eq!(grid[v!(5, 3)], 2);
     /// assert_eq!(grid[v!(1, 8)], 2);
     /// ```
+    #[track_caller]
     pub fn from_simple_fn<F>(width: i64, height: i64, f: F) -> Self
     where
         F: FnMut() -> T,
@@ -145,6 +148,7 @@ impl<T> Grid<T> {
     /// assert_eq!(grid[v!(5, 3)], 8);
     /// assert_eq!(grid[v!(7, 9)], 16);
     /// ```
+    #[track_caller]
     pub fn from_fn<F>(width: i64, height: i64, mut f: F) -> Self
     where
         F: FnMut(Vector) -> T,
@@ -178,6 +182,7 @@ impl<T> Grid<T> {
     /// assert_eq!(grid[v!(0, 2)], 5);
     /// assert_eq!(grid[v!(1, 2)], 6);
     /// ```
+    #[track_caller]
     pub fn from_iter<I>(width: i64, height: i64, values: I) -> Self
     where
         I: IntoIterator<Item = T>,
@@ -453,20 +458,24 @@ impl<T> Grid<T> {
 impl<T> Index<Vector> for Grid<T> {
     type Output = T;
 
+    #[track_caller]
     fn index(&self, pos: Vector) -> &Self::Output {
         let dim = self.dim;
-        self.get(pos).unwrap_or_else(|| {
-            panic!("position out of bounds: the dimensions are {dim} but the position is {pos}")
-        })
+        if let Some(r) = self.get(pos) {
+            return r;
+        }
+        panic!("position out of bounds: the dimensions are {dim} but the position is {pos}")
     }
 }
 
 impl<T> IndexMut<Vector> for Grid<T> {
+    #[track_caller]
     fn index_mut(&mut self, pos: Vector) -> &mut Self::Output {
         let dim = self.dim;
-        self.get_mut(pos).unwrap_or_else(|| {
-            panic!("position out of bounds: the dimensions are {dim} but the position is {pos}")
-        })
+        if let Some(r) = self.get_mut(pos) {
+            return r;
+        }
+        panic!("position out of bounds: the dimensions are {dim} but the position is {pos}")
     }
 }
 
@@ -494,11 +503,13 @@ impl<T: fmt::Display> fmt::Debug for Grid<T> {
     }
 }
 
+#[track_caller]
 fn size(width: i64, height: i64) -> usize {
     if width <= 0 || height <= 0 {
         panic!("dimensions must be positive: ({width}, {height})");
     }
-    (width as usize)
-        .checked_mul(height as usize)
-        .unwrap_or_else(|| panic!("dimensions are too large: ({width}, {height})"))
+    if let Some(size) = (width as usize).checked_mul(height as usize) {
+        return size;
+    }
+    panic!("dimensions are too large: ({width}, {height})");
 }

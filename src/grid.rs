@@ -23,7 +23,7 @@ use std::{
 ///
 /// There are `width` columns and `height` rows in the grid, and the grid's iterators traverse it in row-major order.
 ///
-/// `Grid<T>` implements the [`Debug`] trait if `T` implements the [`Display`] trait.
+/// `Grid<T>` implements the [`Debug`] trait if `T` implements the [`std::fmt::Display`] trait.
 ///
 /// # Examples
 ///

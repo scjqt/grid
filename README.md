@@ -18,7 +18,7 @@ grid = { git = "https://github.com/scjqt/grid", version = "0.3.0" }
 # Examples
 
 ```
-use grid::prelude::*;
+use grid::{Grid, Vector, v, constants::*};
 
 let mut grid: Grid<u8> = Grid::new(5, 6, 3);
 

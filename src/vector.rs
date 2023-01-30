@@ -2,12 +2,6 @@
 
 pub mod constants;
 
-pub mod prelude {
-    pub use crate::vector::constants::*;
-    pub use crate::vector::v;
-    pub use crate::vector::Vector;
-}
-
 use std::{
     fmt,
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
@@ -18,7 +12,7 @@ use std::{
 /// # Examples
 ///
 /// ```
-/// use grid::vector::prelude::*;
+/// use grid::Vector;
 ///
 /// let mut v = Vector::new(1, 2);
 ///
@@ -123,7 +117,7 @@ impl fmt::Display for Vector {
 /// # Examples
 ///
 /// ```
-/// use grid::vector::prelude::*;
+/// use grid::{Vector, v};
 ///
 /// let v = v!(5, 3);
 ///
@@ -132,7 +126,7 @@ impl fmt::Display for Vector {
 #[macro_export]
 macro_rules! v {
     ($x:expr, $y:expr) => {
-        grid::vector::Vector::new($x, $y)
+        grid::Vector::new($x, $y)
     };
 }
 

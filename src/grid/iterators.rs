@@ -14,7 +14,7 @@ impl<T> Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::grid::prelude::*;
+    /// use grid::{Grid, v};
     ///
     /// let mut grid: Grid<u8> = Grid::new(5, 5, 2);
     /// grid[v!(1, 0)] = 3;
@@ -41,7 +41,7 @@ impl<T> Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::grid::prelude::*;
+    /// use grid::{Grid, v};
     ///
     /// let mut grid: Grid<u8> = Grid::new(8, 10, 0);
     /// grid[v!(1, 0)] = 2;
@@ -67,7 +67,7 @@ impl<T> Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::grid::prelude::*;
+    /// use grid::{Grid, v};
     ///
     /// let mut grid: Grid<u8> = Grid::new(3, 2, 0);
     ///
@@ -102,7 +102,7 @@ impl<T> Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::grid::prelude::*;
+    /// use grid::Grid;
     ///
     /// let grid: Grid<i64> = Grid::from_fn(8, 10, |pos| pos.x * 2 + pos.y);
     ///
@@ -123,7 +123,7 @@ impl<T> Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::grid::prelude::*;
+    /// use grid::{Grid, v};
     ///
     /// let mut grid: Grid<i64> = Grid::new(8, 10, 3);
     ///
@@ -146,7 +146,7 @@ impl<T> Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::grid::prelude::*;
+    /// use grid::Grid;
     ///
     /// let grid: Grid<u8> = Grid::new(8, 10, 6);
     ///
@@ -169,7 +169,7 @@ impl<T> IntoIterator for Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::grid::prelude::*;
+    /// use grid::{Grid, v};
     ///
     /// let mut grid: Grid<u8> = Grid::new(5, 5, 7);
     /// grid[v!(1, 0)] = 5;
@@ -200,7 +200,7 @@ impl<'a, T> IntoIterator for &'a Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::grid::prelude::*;
+    /// use grid::{Grid, v};
     ///
     /// let mut grid: Grid<u8> = Grid::new(5, 5, 2);
     /// grid[v!(1, 0)] = 3;
@@ -226,7 +226,7 @@ impl<'a, T> IntoIterator for &'a mut Grid<T> {
     /// # Examples
     ///
     /// ```
-    /// use grid::grid::prelude::*;
+    /// use grid::{Grid, v};
     ///
     /// let mut grid: Grid<u8> = Grid::new(8, 10, 0);
     /// grid[v!(1, 0)] = 2;
@@ -248,7 +248,7 @@ impl<'a, T> IntoIterator for &'a mut Grid<T> {
 /// # Examples
 ///
 /// ```
-/// use grid::grid::prelude::*;
+/// use grid::{Grid, v};
 ///
 /// let mut grid: Grid<u8> = Grid::new(3, 2, 0);
 ///
@@ -298,7 +298,7 @@ impl Iterator for Positions {
 /// # Examples
 ///
 /// ```
-/// use grid::grid::prelude::*;
+/// use grid::Grid;
 ///
 /// let grid: Grid<i64> = Grid::from_fn(8, 10, |pos| pos.x * 2 + pos.y);
 ///
@@ -333,7 +333,7 @@ impl<'a, T> Iterator for PositionIter<'a, T> {
 /// # Examples
 ///
 /// ```
-/// use grid::grid::prelude::*;
+/// use grid::{Grid, v};
 ///
 /// let mut grid: Grid<i64> = Grid::new(8, 10, 3);
 ///
@@ -370,7 +370,7 @@ impl<'a, T> Iterator for PositionIterMut<'a, T> {
 /// # Examples
 ///
 /// ```
-/// use grid::grid::prelude::*;
+/// use grid::Grid;
 ///
 /// let grid: Grid<u8> = Grid::new(8, 10, 6);
 ///

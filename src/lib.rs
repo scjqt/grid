@@ -9,7 +9,7 @@
 //! # Examples
 //!
 //! ```
-//! use grid::prelude::*;
+//! use grid::{Grid, Vector, v, constants::*};
 //!
 //! let mut grid: Grid<u8> = Grid::new(5, 6, 3);
 //!
@@ -35,12 +35,8 @@
 //! assert_eq!(pos, v!(5, 2));
 //! ```
 
-pub mod grid;
-pub mod vector;
+mod grid;
+mod vector;
 
-pub mod prelude {
-    pub use crate::grid::Grid;
-    pub use crate::vector::constants::*;
-    pub use crate::vector::v;
-    pub use crate::vector::Vector;
-}
+pub use crate::grid::{iterators, Grid};
+pub use vector::{constants, Vector};

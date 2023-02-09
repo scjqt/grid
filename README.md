@@ -12,12 +12,12 @@ Add this to your `Cargo.toml`:
 
 ```
 [dependencies]
-grid = { git = "https://github.com/scjqt/grid", version = "0.3.0" }
+grid = { git = "https://github.com/scjqt/grid" }
 ```
 
 # Examples
 
-```
+```rs
 use grid::{Grid, Vector, v, constants::*};
 
 let mut grid: Grid<u8> = Grid::new(5, 6, 3);

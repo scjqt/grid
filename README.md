@@ -12,7 +12,7 @@ Add this to your `Cargo.toml`:
 
 ```
 [dependencies]
-grid = { git = "https://github.com/scjqt/grid" }
+grid = { git = "https://github.com/sncxyz/grid" }
 ```
 
 # Examples

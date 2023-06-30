@@ -35,7 +35,7 @@ use std::{
 ///
 /// println!("{:?}", grid);
 /// ```
-#[derive(PartialEq, Eq, Clone, Hash)]
+#[derive(PartialEq, Eq, Clone, Default, Hash)]
 pub struct Grid<T> {
     data: Vec<T>,
     dim: Vector,

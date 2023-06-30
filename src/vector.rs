@@ -31,6 +31,9 @@ pub struct Vector {
 }
 
 impl Vector {
+    pub const MIN: Vector = Vector::new(i64::MIN, i64::MIN);
+    pub const MAX: Vector = Vector::new(i64::MAX, i64::MAX);
+
     /// Creates a new `Vector` with the given `x` and `y` coordinates.
     #[inline(always)]
     pub const fn new(x: i64, y: i64) -> Self {

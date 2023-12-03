@@ -18,19 +18,19 @@ grid = { git = "https://github.com/sncxyz/grid" }
 # Examples
 
 ```rs
-use grid::{Grid, Vector, v, constants::*};
+use grid::prelude::*;
 
 let mut grid: Grid<u8> = Grid::new(5, 6, 3);
 
 assert_eq!(grid.width(), 5);
 assert_eq!(grid.height(), 6);
 
-grid[v!(1, 0)] = 1;
-grid[v!(3, 5)] = 2;
+grid[v(1, 0)] = 1;
+grid[v(3, 5)] = 2;
 
-assert_eq!(grid[v!(3, 5)], 2);
-assert_eq!(grid[v!(1, 0)], 1);
-assert_eq!(grid[v!(2, 4)], 3);
+assert_eq!(grid[v(3, 5)], 2);
+assert_eq!(grid[v(1, 0)], 1);
+assert_eq!(grid[v(2, 4)], 3);
 
 println!("{:?}", grid);
 
@@ -41,5 +41,5 @@ while grid.in_bounds(pos) {
     pos += offset;
 }
 
-assert_eq!(pos, v!(5, 2));
+assert_eq!(pos, v(5, 2));
 ```

@@ -12,7 +12,7 @@ use std::{
 /// # Examples
 ///
 /// ```
-/// use grid::Vector;
+/// use grid::prelude::*;
 ///
 /// let mut v = Vector::new(1, 2);
 ///
@@ -115,25 +115,21 @@ impl fmt::Display for Vector {
     }
 }
 
-/// A convenience macro for creating a `Vector` with `Vector::new()`.
+/// A convenience function for creating a `Vector` with `Vector::new()`.
 ///
 /// # Examples
 ///
 /// ```
-/// use grid::{Vector, v};
+/// use grid::prelude::*;
 ///
-/// let v = v!(5, 3);
+/// let v = v(5, 3);
 ///
 /// assert_eq!(v, Vector::new(5, 3));
 /// ```
-#[macro_export]
-macro_rules! v {
-    ($x:expr, $y:expr) => {
-        grid::Vector::new($x, $y)
-    };
+#[inline(always)]
+pub fn v(x: i64, y: i64) -> Vector {
+    Vector::new(x, y)
 }
-
-pub use v;
 
 impl Add for Vector {
     type Output = Self;

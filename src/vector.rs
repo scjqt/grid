@@ -127,7 +127,7 @@ impl fmt::Display for Vector {
 /// assert_eq!(v, Vector::new(5, 3));
 /// ```
 #[inline(always)]
-pub fn v(x: i64, y: i64) -> Vector {
+pub const fn v(x: i64, y: i64) -> Vector {
     Vector::new(x, y)
 }
 
